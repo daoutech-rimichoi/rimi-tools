@@ -90,9 +90,8 @@ ${formattedDetailedEffort}
 			return;
 		}
 		isShortening = true;
-		const apiUrl = import.meta.env.DEV ? '/api/shorten' : 'https://www.buly.kr/api/shoturl.siso';
 		try {
-			const response = await fetch(apiUrl, {
+			const response = await fetch('/api/shorten', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded'
