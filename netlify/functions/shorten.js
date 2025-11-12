@@ -3,12 +3,9 @@ const fetch = require('node-fetch');
 exports.handler = async (event) => {
   // Netlify는 POST 요청 본문을 문자열로 전달합니다.
   const bodyParams = new URLSearchParams(event.body);
-  const orgUrl = bodyParams.get('org_url');
+  const longUrl = bodyParams.get('url');
 
-  // buly.kr API가 요구하는 다른 파라미터들도 함께 전달합니다.
-  const targetUrl = 'https://www.buly.kr/api/shoturl.siso';
-  const customerId = 'berryzed';
-  const partnerApiId = '136C8F3B1452BF8CC8536931982FD993';
+  const targetUrl = 'https://cleanuri.com/api/v1/shorten';
 
   try {
     const response = await fetch(targetUrl, {
@@ -17,17 +14,24 @@ exports.handler = async (event) => {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        org_url: orgUrl,
-        customer_id: customerId,
-        partner_api_id: partnerApiId,
+        url: longUrl,
       }),
     });
 
     const data = await response.json();
 
+    if (!response.ok) {
+      // cleanuri가 에러 메시지를 보내면 그대로 전달
+      throw new Error(data.error || 'API 요청 실패');
+    }
+
+    const responseBody = {
+      result_url: data.result_url
+    };
+
     return {
-      statusCode: response.status,
-      body: JSON.stringify(data),
+      statusCode: 200,
+      body: JSON.stringify(responseBody),
       headers: {
         'Content-Type': 'application/json',
       },
@@ -35,7 +39,7 @@ exports.handler = async (event) => {
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Internal Server Error', message: error.message }),
+      body: JSON.stringify({ error: error.message }),
     };
   }
 };

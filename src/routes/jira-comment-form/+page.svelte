@@ -97,9 +97,7 @@ ${formattedDetailedEffort}
 					'Content-Type': 'application/x-www-form-urlencoded'
 				},
 				body: new URLSearchParams({
-					org_url: tcLink,
-					customer_id: 'berryzed',
-					partner_api_id: '136C8F3B1452BF8CC8536931982FD993'
+					url: tcLink
 				})
 			});
 			if (!response.ok) {
@@ -108,11 +106,7 @@ ${formattedDetailedEffort}
 				throw new Error(`URL 단축 실패: ${errorData.error}`);
 			}
 			const data = await response.json();
-			if (data.result !== 'Y') {
-				// noinspection ExceptionCaughtLocallyJS
-				throw new Error(`URL 단축 실패: ${data.message || '알 수 없는 오류'}`);
-			}
-			tcLink = data.url;
+			tcLink = data.result_url;
 		} catch (error) {
 			console.error('URL Shortening Error:', error);
 			alert(`URL 단축 중 오류가 발생했습니다: ${error.message}.`);

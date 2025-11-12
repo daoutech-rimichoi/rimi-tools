@@ -7,12 +7,10 @@ export default defineConfig({
 	plugins: [tailwindcss(), sveltekit(), devtoolsJson()],
 	server: {
 		proxy: {
-			'/api/shorten': {
-				target: 'https://www.buly.kr',
+			'/.netlify/functions/shorten': {
+				target: 'https://cleanuri.com',
 				changeOrigin: true,
-				rewrite: () => {
-					return '/api/shoturl.siso';
-				},
+				rewrite: () => '/api/v1/shorten',
 				secure: false,
 			},
 		}
