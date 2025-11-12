@@ -6,7 +6,7 @@ import { sveltekit } from '@sveltejs/kit/vite';
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit(), devtoolsJson()],
 	server: {
-		proxy: {
+		proxy: process.env.NODE_ENV === 'development' ? {
 			'/api/shorten': {
 				target: 'https://www.buly.kr',
 				changeOrigin: true,
@@ -15,7 +15,7 @@ export default defineConfig({
 				},
 				secure: false,
 			},
-		}
+		} : undefined,
 	},
 	test: {
 		expect: { requireAssertions: true },
