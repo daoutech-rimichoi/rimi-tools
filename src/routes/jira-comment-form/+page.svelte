@@ -91,7 +91,7 @@ ${formattedDetailedEffort}
 		}
 		isShortening = true;
 		try {
-			const response = await fetch('/api/shorten', {
+			const response = await fetch('/.netlify/functions/shorten', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded'
