@@ -13,14 +13,18 @@
 	// --- Options for Selects and Checkboxes ---
 	const developers = ['최경림', '김준혁', '김지웅', '전하라', '요용상', '배윤희', '한수찬'];
 	const workTargets = [
-		'kapi / 27.102.215.47 / 80,443 / stella01, stella02',
-		'napi / 115.71.53.19 / 80,443 / stella01, stella02',
-		'rapi / 115.71.53.22 / 80,443 / stella01, stella02',
-		'salesApi / 115.71.53.20 / 80,443 / stella01, stella02',
-		'ivr / 115.71.53.23 / 80,443 / stella01, stella02',
-		'numball / 115.71.53.232 / 80,443 / lucy01a, lucy02a',
-		'web-fax-forward-daemon / 115.71.53.25 / 9000,19000 / stella01, stella02, stella03 (Apache 미사용)'
+		{ code: 'kapi', name: 'KAPI', text: '| kapi | 27.102.215.47 | 80,443 | 8091,8447 | stella01, stella02 |' },
+		{ code: 'rapi', name: 'RAPI', text: '| rapi | 115.71.53.22 | 80,443 | 8092,8448 | stella01, stella02 |' },
+		{ code: 'napi', name: 'NAPI', text: '| napi | 115.71.53.19 | 80,443 | 8093,8449 | stella01, stella02 |' },
+		{ code: 'salesApi', name: 'SAPI', text: '| salesApi | 115.71.53.20 | 80,443 | 8089,8445 | stella01, stella02 |' },
+		{ code: 'ivr', name: 'IVR', text: '| ivr | 115.71.53.23 | 80,443 | 8090,8446 | stella01, stella02 |' },
+		{ code: 'forward', name: '팩스포워드', text: '| forward | 115.71.53.25 | 9000,19000 | 9000,19000 | stella01, stella02, stella03 (Apache 미사용) |' },
+		{ code: 'numball', name: '번자관', text: '| numball | 115.71.53.232 | 443 | 14119 | lucy01a, lucy02a |' }
 	];
+
+	const numballText = workTargets.find((t) => t.code === 'numball')?.text ?? '';
+	$: isNumballSelected = numballText ? $selectedTargets.includes(numballText) : false;
+	$: hasOtherSelections = $selectedTargets.some((t) => t !== numballText);
 
 	// --- Fixed Content ---
 	const workContent = 'L4 disable/enable 및 Apache LB worker 작업 요청';
