@@ -29,14 +29,16 @@
 	// --- Fixed Content ---
 	const workContent = 'L4 disable/enable 및 Apache LB worker 작업 요청';
 	const workScenario = `# 아파치 설정 작업 (1~N 전부)
-cp /home/service/apache/\\{서비스명}/conf/worker.properties.deploy ./worker.properties
+cd /home/service/apache/\\{서비스명}/conf/
+cp worker.properties.deploy ./worker.properties
 /home/service/apache/\\{서비스명}/bin/apachectl graceful
 # 1번 L4 제외
 # 1번 서비스 배포
-# 1번 L4 포함 2번 L4 제외
+# 1번 L4 포함
 # 2~4 서버별 반복
 # L4 모두 허용 시 아파치 설정 원복
-cp /home/service/apache/\\{서비스명}/conf/worker.properties.org ./worker.properties
+cd /home/service/apache/\\{서비스명}/conf/
+cp worker.properties.org ./worker.properties
 /home/service/apache/\\{서비스명}/bin/apachectl graceful`;
 
 	// --- Initial Data Loading ---
@@ -52,24 +54,29 @@ cp /home/service/apache/\\{서비스명}/conf/worker.properties.org ./worker.pro
 	});
 
 	// --- Helper function for formatting lists ---
-	function formatToList(items, prefix = ' - ') {
+	function formatToList(items) {
 		if (!items || items.length === 0) return '';
-		return items
-			.filter((item) => item.trim() !== '')
-			.map((item) => prefix + item.trim())
-			.join('\n');
+		const header = '|| 서비스명 || Virtual IP ||  Virtual Port ||  Real Port || 대상 서버 ||';
+		const rows = items
+				.filter((item) => item.trim() !== '')
+				.join('\n');
+		return [header, rows].join('\n');
 	}
 
 	// --- Reactive Output Generation ---
 	$: formattedWorkTime = $workTime ? $workTime.replace('T', ' ') : '';
-	const outputTitle = `[비즈뿌리오] L4 작업 요청`;
+	$: outputTitle = isNumballSelected
+		? '[번호자원관리시스템] lucy L4 작업 요청'
+		: hasOtherSelections
+			? '[비즈뿌리오] stella L4 작업 요청'
+			: '[서비스명] L4 작업 요청';
 	$: outputBody = `안녕하세요. 시스템코어개발팀 ${$developer}입니다.
 아래 내용으로 작업 요청 드립니다.
 
 ■ 작업 내용
  - ${workContent}
 
-■ 작업 대상 (서비스명 / VIP / VPORT / 대상 서버)
+■ 작업 대상
 ${formatToList($selectedTargets)}
 
 ■ 작업 시나리오
@@ -136,15 +143,16 @@ ${workScenario}
 				<div class="form-control w-full">
 					<h3 class="label"><span class="label-text">작업 대상</span></h3>
 					<div class="block space-y-2 rounded-lg border border-base-300 bg-base-200 p-2">
-						{#each workTargets as target (target)}
+						{#each workTargets as target (target.code)}
 							<label class="flex cursor-pointer items-center">
 								<input
 									type="checkbox"
-									value={target}
+									value={target.text}
 									bind:group={$selectedTargets}
 									class="checkbox checkbox-primary"
+									disabled={(target.code !== 'numball' && isNumballSelected) || (target.code === 'numball' && hasOtherSelections)}
 								/>
-								<span class="label-text ml-2">{target}</span>
+								<span class="label-text ml-2">{target.name}</span>
 							</label>
 						{/each}
 					</div>
