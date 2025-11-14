@@ -19,6 +19,10 @@
 		{
 			name: '배포 현황 공유 양식',
 			path: '/deployment-status-sharing-form'
+		},
+		{
+			name: 'DB 업무 요청 양식',
+			path: '/db-request-form'
 		}
 	];
 </script>

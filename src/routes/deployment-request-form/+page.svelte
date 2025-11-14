@@ -185,12 +185,7 @@ ${sections.join('\n\n')}
 	// --- Warn user before leaving the page ---
 	function handleBeforeUnload(event) {
 		// Only warn if there's some input that might be lost
-		if (
-			$selectedProcesses.length > 0 ||
-			$workDescription.trim() !== '' ||
-			$workTime.trim() !== '' ||
-			$remarks.trim() !== ''
-		) {
+		if ($workDescription.trim() !== '' || $remarks.trim() !== '') {
 			event.preventDefault();
 			event.returnValue = '변경사항이 저장되지 않을 수 있습니다. 정말로 나가시겠습니까?';
 			return event.returnValue;

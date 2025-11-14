@@ -1,0 +1,3 @@
+- Svelte에서 `{#each}` 블록을 사용할 때 `{#each expression as item (key)}` 형식으로 `key`를 추가합니다. `key`는 각 `item`을 고유하게 식별할 수 있는 값이어야 합니다.
+- Js의 Date 클래스가 아닌 svelte/reactivity 패키지의 SvelteDate를 사용합니다.
+- 날짜 input은 사용자가 수동으로 변경이 불가능하고 날짜 선택 UI에서만 선택하도록 제한한다.

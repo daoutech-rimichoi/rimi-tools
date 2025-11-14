@@ -83,7 +83,9 @@ ${formatToList($selectedTargets)}
 ${workScenario}
 
 ■ 작업 일시
- - ${formattedWorkTime}`;
+ - ${formattedWorkTime}
+
+감사합니다.`;
 
 	// --- Clipboard Logic ---
 	async function copyTitleToClipboard() {
