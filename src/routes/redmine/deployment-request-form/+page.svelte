@@ -110,12 +110,12 @@
 
 	// --- Helper function for formatting lists ---
 	// Now takes an array of strings
-	function formatToList(items, prefix = '** ') {
+	function formatToList(items, prefix = '- ') {
 		if (!items || items.length === 0) return '';
 		return items
 			.filter((item) => item.trim() !== '')
 			.map((item) => prefix + item.trim())
-			.join('\n');
+			.join('<br />\n');
 	}
 
 	const serviceMap = {
@@ -138,25 +138,27 @@
 		const sections = [];
 		if ($selectedProcesses && $selectedProcesses.length > 0) {
 			sections.push(
-				`* 대상 프로세스 (${deploymentTypeMap[$deploymentType]})\n${formatToList($selectedProcesses)}`
+				`<p>■ 대상 프로세스 (${deploymentTypeMap[$deploymentType]})<br />\n${formatToList($selectedProcesses)}</p>`
 			); // Added deploymentType
 		}
 		if ($workDescription && $workDescription.trim()) {
-			sections.push(`* 작업 내용\n${formatToList($workDescription.split('\n'))}`);
+			sections.push(`<p>■ 작업 내용<br />\n${formatToList($workDescription.split('\n'))}</p>`);
 		}
 		if ($workTime) {
-			sections.push(`* 작업 시간\n** ${formattedWorkTime}`);
+			sections.push(`<p>■ 작업 시간<br />\n- ${formattedWorkTime}</p>`);
 		}
 		if ($remarks && $remarks.trim()) {
-			sections.push(`* 비고\n${formatToList($remarks.split('\n'))}`);
+			sections.push(`<p>■ 비고<br />\n${formatToList($remarks.split('\n'))}</p>`);
 		}
 
-		return `안녕하세요. 시스템코어개발팀 ${$developer}입니다.
-아래 내용으로 서비스 배포 요청드립니다.
+		return `<p>안녕하세요. 시스템코어개발팀 ${$developer}입니다.<br />
+아래 내용으로 서비스 배포 요청드립니다.</p>
 
-${sections.join('\n\n')}
+<blockquote>
+${sections.join('\n')}
+</blockquote>
 
-감사합니다.`;
+<p>감사합니다.</p>`;
 	})();
 
 	// --- Clipboard Logic ---
