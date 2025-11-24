@@ -199,6 +199,14 @@ ${sections.join('\n\n')}
 
 <div class="container mx-auto p-4">
 	<h1 class="mb-4 text-2xl font-bold">배포 요청 양식</h1>
+	<a
+		href="https://daoucokr.sharepoint.com/:x:/s/svctech/EfJNncyU951PvoiJTE41JCUB_tn4QELyqOYQ6d-wAmZ75w?e=R1cQ37"
+		target="_blank"
+		rel="noopener noreferrer"
+		class="mb-6 inline-block text-sm text-primary underline hover:opacity-80"
+	>
+		서비스운영팀 주차별 배포 예정 현황
+	</a>
 
 	<div class="grid grid-cols-1 gap-8 md:grid-cols-2">
 		<!-- Input Section -->
