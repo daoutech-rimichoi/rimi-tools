@@ -28,7 +28,18 @@
 				{ name: '코멘트 양식', path: '/redmine/comment-form' },
 				{ name: 'DB 업무 요청 양식', path: '/redmine/db-request-form' },
 			]
-		}
+		},
+		{
+			category: '바로가기 링크',
+			type: 'link',
+			items: [
+				{ name: 'Jenkins - 개발', path: 'http://172.22.92.131:9090/job/DEV/view/SYSCORE/' },
+				{ name: 'Jenkins - 검수', path: 'http://svctech.daou.co.kr:9090/job/STAGE/' },
+				{ name: 'SharePoint - 시코팀', path: 'https://daoucokr.sharepoint.com/sites/syscore/SitePages/CollabHome.aspx' },
+				{ name: 'SharePoint - 일일점검', path: 'https://daoucokr.sharepoint.com/:x:/r/sites/syscore/_layouts/15/Doc.aspx?sourcedoc=%7Be41f6b49-44d9-487e-b62e-8a88e38c70be%7D&action=edit&activeCell=%27%EC%9D%BC%EC%9D%BC%EC%A0%90%EA%B2%80%27!N8&wdinitialsession=239f0965-f077-39cf-1595-a3137e6ee58f&wdrldsc=2&wdrldc=1&wdrldr=AccessTokenExpiredWarningUnauthenticated%2CRefreshin' },
+				{ name: '서비스운영팀 - 주차별 배포 예정 현황', path: 'https://daoucokr.sharepoint.com/:x:/s/svctech/EfJNncyU951PvoiJTE41JCUB_tn4QELyqOYQ6d-wAmZ75w?e=R1cQ37' },
+			]
+		},
 	];
 
 </script>
@@ -46,10 +57,10 @@
 	</div>
 	<div class="drawer-side">
 		<label for="my-drawer-2" aria-label="close sidebar" class="drawer-overlay"></label>
-		<ul class="menu min-h-full w-80 bg-base-200 p-4 text-base-content">
+		<ul class="menu min-h-full w-80 bg-base-200 p-4 text-base-content flex flex-col">
 			<!-- Sidebar content here -->
 			{#each menus as group (group.category)}
-				<li class="menu-title relative group cursor-default">
+				<li class="menu-title relative group cursor-default {group.type === 'link' ? 'mt-auto' : ''}">
 					<span>{group.category}</span>
 					<div class="tooltip-bubble">
 						{group.desc}
@@ -61,8 +72,9 @@
 						<a
 							href={menu.path}
 							class:menu-active={page.url.pathname.startsWith(menu.path)}
-							data-sveltekit-reload>{menu.name}</a
-						>
+							target={group.type === 'link' ? '_blank' : null}
+							rel={group.type === 'link' ? 'noopener noreferrer' : null}
+							data-sveltekit-reload>{menu.name}</a>
 					</li>
 				{/each}
 			{/each}

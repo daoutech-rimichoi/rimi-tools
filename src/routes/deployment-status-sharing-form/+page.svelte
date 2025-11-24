@@ -117,7 +117,7 @@
 				</div>
 				<div class="form-control w-full">
 					<label for="jira" class="label"
-						><span class="label-text">※ 배포 요청 JIRA (한 줄에 하나씩)</span></label
+						><span class="label-text">※ 배포 요청 문서 (한 줄에 하나씩)</span></label
 					>
 					<textarea
 						id="jira"
