@@ -125,9 +125,12 @@ ${formattedDetailedEffort}</p>
 
     // --- Common Logic ---
     function handleBeforeUnload(event) {
-        event.preventDefault();
-        event.returnValue = '변경사항이 저장되지 않을 수 있습니다. 정말로 나가시겠습니까?';
-        return event.returnValue;
+        // Only warn if there's some input that might be lost
+        if (detailedEffort.trim() !== '' || remarks.trim() !== '' || prLink.trim() !== '' || tcLink.trim() !== '') {
+            event.preventDefault();
+            event.returnValue = '변경사항이 저장되지 않을 수 있습니다. 정말로 나가시겠습니까?';
+            return event.returnValue;
+        }
     }
 </script>
 

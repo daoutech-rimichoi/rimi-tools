@@ -55,15 +55,15 @@
             .map(
                 (
                     field
-                ) => `<tr><td style="width: 164px;"><p style="text-align: center;"><strong>${field.label}</strong></p></td>
-<td style="width: 631px;"><p>${formatToList(field.value.split('\n')) || '-'}</p></td></tr>`
+                ) => `<tr><td><p style="text-align: center;"><strong>${field.label}</strong></p></td>
+<td><p>${formatToList(field.value.split('\n')) || '-'}</p></td></tr>`
             )
             .join('\n');
 
         return `<p>안녕하세요. 시스템코어개발팀 ${assignee}입니다.<br />
 아래 내용으로 DB 작업 요청드립니다.</p>
 
-<table border="1" cellpadding="1" cellspacing="1" style="width: 833px;">
+<table>
 	<tbody>
 		${body}
 	</tbody>
@@ -73,7 +73,21 @@
     })();
 
     let showPreview = false;
+
+    // --- Warn user before leaving the page ---
+    function handleBeforeUnload(event) {
+        // Only warn if there's some input that might be lost
+        if (reason.trim() !== '' || details.trim() !== '' || type.trim() !== '' ||
+            system.trim() !== '' || table.trim() !== '' || impact.trim() !== '' ||
+            backup.trim() !== '') {
+            event.preventDefault();
+            event.returnValue = '변경사항이 저장되지 않을 수 있습니다. 정말로 나가시겠습니까?';
+            return event.returnValue;
+        }
+    }
 </script>
+
+<svelte:window on:beforeunload={handleBeforeUnload}/>
 
 <div class="container mx-auto p-4">
     <h1 class="mb-4 text-2xl font-bold">DB 업무 요청 양식</h1>

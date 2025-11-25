@@ -25,6 +25,7 @@
             category: 'REDMINE',
             desc: '입력 시 편집모드에서 "소스"선택 후 붙여넣으세염',
             items: [
+                {name: 'L4 작업 요청 양식', path: '/redmine/l4-request-form'},
                 {name: '배포 요청 양식', path: '/redmine/deployment-request-form'},
                 {name: '코멘트 양식', path: '/redmine/comment-form'},
                 {name: 'DB 업무 요청 양식', path: '/redmine/db-request-form'},
