@@ -2,6 +2,7 @@
     import '../app.css';
     import favicon from '$lib/assets/favicon.svg';
     import {page} from '$app/state';
+    import Toast from '$lib/components/Toast.svelte';
 
     const menus = [
         {
@@ -56,6 +57,8 @@
 <svelte:head>
     <link rel="icon" href={favicon}/>
 </svelte:head>
+
+<Toast/>
 
 <div class="drawer lg:drawer-open">
     <input id="my-drawer-2" type="checkbox" class="drawer-toggle"/>

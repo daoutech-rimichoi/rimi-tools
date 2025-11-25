@@ -3,6 +3,7 @@
     import {writable} from 'svelte/store';
     import {SvelteDate} from 'svelte/reactivity';
     import HtmlPreviewModal from '$lib/components/HtmlPreviewModal.svelte';
+    import {copyToClipboard} from '$lib/utils/clipboard.js';
 
     // --- State Variables using Writable Store ---
     const service = writable('bizsales');
@@ -12,8 +13,6 @@
     const workDescription = writable('');
     const workTime = writable('');
     const remarks = writable('');
-    let copiedTitle = false;
-    let copiedBody = false;
     let showPreview = false;
 
     // --- Options for Selects ---
@@ -163,28 +162,6 @@ ${sections.join('\n')}
 <p>감사합니다.</p>`;
     })();
 
-    // --- Clipboard Logic ---
-    async function copyTitleToClipboard() {
-        try {
-            await navigator.clipboard.writeText(outputTitle);
-            copiedTitle = true;
-            setTimeout(() => (copiedTitle = false), 2000);
-        } catch (err) {
-            console.error('제목 클립보드 복사 실패:', err);
-            alert('제목 클립보드 복사에 실패했습니다.');
-        }
-    }
-
-    async function copyBodyToClipboard() {
-        try {
-            await navigator.clipboard.writeText(outputBody);
-            copiedBody = true;
-            setTimeout(() => (copiedBody = false), 2000);
-        } catch (err) {
-            console.error('본문 클립보드 복사 실패:', err);
-            alert('본문 클립보드 복사에 실패했습니다.');
-        }
-    }
 
     // --- Warn user before leaving the page ---
     function handleBeforeUnload(event) {
@@ -323,8 +300,8 @@ ${sections.join('\n')}
                 <div class="form-control mb-4 w-full">
                     <div class="label flex items-center justify-between">
                         <label for="outputTitle" class="label-text">제목</label>
-                        <button on:click={copyTitleToClipboard} class="btn btn-sm btn-primary">
-                            {#if copiedTitle}복사 완료!{:else}제목 복사하기{/if}
+                        <button on:click={() => copyToClipboard(outputTitle)} class="btn btn-sm btn-primary">
+                            제목 복사하기
                         </button>
                     </div>
                     <input
@@ -342,8 +319,8 @@ ${sections.join('\n')}
                             <button on:click={() => (showPreview = true)} class="btn btn-sm btn-secondary">
                                 미리보기
                             </button>
-                            <button on:click={copyBodyToClipboard} class="btn btn-sm btn-primary">
-                                {#if copiedBody}복사 완료!{:else}본문 복사하기{/if}
+                            <button on:click={() => copyToClipboard(outputBody)} class="btn btn-sm btn-primary">
+                                본문 복사하기
                             </button>
                         </div>
                     </div>

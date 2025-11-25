@@ -1,6 +1,6 @@
 <script>
     import HtmlPreviewModal from '$lib/components/HtmlPreviewModal.svelte';
-
+    import {copyToClipboard} from '$lib/utils/clipboard.js';
     import {SvelteDate} from 'svelte/reactivity';
 
     // Function to get today's date at 18:00 in YYYY-MM-DDTHH:mm format
@@ -71,20 +71,8 @@
 
 <p>감사합니다.</p>`;
     })();
-    // Clipboard logic
-    let copied = false;
-    let showPreview = false;
 
-    async function copyToClipboard() {
-        try {
-            await navigator.clipboard.writeText(output);
-            copied = true;
-            setTimeout(() => (copied = false), 2000);
-        } catch (err) {
-            console.error('클립보드 복사 실패:', err);
-            alert('클립보드 복사에 실패했습니다.');
-        }
-    }
+    let showPreview = false;
 </script>
 
 <div class="container mx-auto p-4">
@@ -221,11 +209,12 @@
                         <button on:click={() => (showPreview = true)} class="btn btn-sm btn-secondary">
                             미리보기
                         </button>
-                        <button on:click={copyToClipboard} class="btn btn-sm btn-primary">
-                            {#if copied}복사 완료!{:else}복사하기{/if}
+                        <button on:click={() => copyToClipboard(output)} class="btn btn-sm btn-primary">
+                            복사하기
                         </button>
                     </div>
                 </div>
+                <!--suppress HtmlUnknownAttribute -->
                 <textarea
                         id="output"
                         readonly

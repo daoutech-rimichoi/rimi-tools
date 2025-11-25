@@ -3,6 +3,7 @@
     import {writable} from 'svelte/store';
     import {browser} from '$app/environment';
     import {SvelteDate} from 'svelte/reactivity';
+    import {copyToClipboard} from '$lib/utils/clipboard.js';
 
     // Helper function to create a writable store that persists to localStorage
     const createPersistentStore = (key, startValue) => {
@@ -68,20 +69,6 @@
         title,
         ...sections.filter((s) => s.content).map((s) => `${s.title}\n${s.content}`)
     ].join('\n\n');
-
-    // Clipboard logic
-    let copied = false;
-
-    async function copyToClipboard() {
-        try {
-            await navigator.clipboard.writeText(output);
-            copied = true;
-            setTimeout(() => (copied = false), 2000);
-        } catch (err) {
-            console.error('클립보드 복사 실패:', err);
-            alert('클립보드 복사에 실패했습니다.');
-        }
-    }
 </script>
 
 <div class="container mx-auto p-4">
@@ -148,9 +135,7 @@
             <div class="card-body">
                 <div class="mb-2 flex items-center justify-between">
                     <h2 class="card-title">결과</h2>
-                    <button on:click={copyToClipboard} class="btn btn-sm btn-primary">
-                        {#if copied}복사 완료!{:else}복사하기{/if}
-                    </button>
+                    <button on:click={() => copyToClipboard(output)} class="btn btn-sm btn-primary"> 복사하기</button>
                 </div>
                 <!--suppress HtmlUnknownAttribute -->
                 <textarea

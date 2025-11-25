@@ -1,6 +1,7 @@
 <script>
     import {SvelteDate} from 'svelte/reactivity';
     import HtmlPreviewModal from '$lib/components/HtmlPreviewModal.svelte';
+    import {copyToClipboard} from '$lib/utils/clipboard.js';
 
     // --- State for "개발 승인 요청" ---
     let devEffort = 1;
@@ -10,14 +11,12 @@
     const today = new SvelteDate().toISOString().split('T')[0];
     let startDate = today;
     let targetDate = today;
-    let copied1 = false;
     let showPreview1 = false;
 
     // --- State for "개발 완료 승인 요청" ---
     let endDate = today;
     let prLink = '';
     let tcLink = '';
-    let copied2 = false;
     let showPreview2 = false;
     let isShortening = false;
     $: canShortenUrl =
@@ -65,12 +64,6 @@ ${formattedDetailedEffort}</p>
 - 목표일: ${formattedTargetDate}${remarksSection}</p>
 </blockquote>`;
 
-    function copyToClipboard1() {
-        navigator.clipboard.writeText(resultText1).then(() => {
-            copied1 = true;
-            setTimeout(() => (copied1 = false), 2000);
-        });
-    }
 
     // --- Logic for "개발 완료 승인 요청" ---
     // 1. PR링크는 줄내림을 기준으로 여러개 등록이 가능하다.
@@ -129,12 +122,6 @@ ${formattedDetailedEffort}</p>
         }
     }
 
-    function copyToClipboard2() {
-        navigator.clipboard.writeText(resultText2).then(() => {
-            copied2 = true;
-            setTimeout(() => (copied2 = false), 2000);
-        });
-    }
 
     // --- Common Logic ---
     function handleBeforeUnload(event) {
@@ -244,8 +231,8 @@ ${formattedDetailedEffort}</p>
                             <button class="btn btn-sm btn-secondary" on:click={() => (showPreview1 = true)}>
                                 미리보기
                             </button>
-                            <button class="btn btn-sm btn-primary" on:click={copyToClipboard1}>
-                                {#if copied1}복사 완료!{:else}복사하기{/if}
+                            <button class="btn btn-sm btn-primary" on:click={() => copyToClipboard(resultText1)}>
+                                복사하기
                             </button>
                         </div>
                     </div>
@@ -321,8 +308,8 @@ ${formattedDetailedEffort}</p>
                             <button class="btn btn-sm btn-secondary" on:click={() => (showPreview2 = true)}>
                                 미리보기
                             </button>
-                            <button class="btn btn-sm btn-primary" on:click={copyToClipboard2}>
-                                {#if copied2}복사 완료!{:else}복사하기{/if}
+                            <button class="btn btn-sm btn-primary" on:click={() => copyToClipboard(resultText2)}>
+                                복사하기
                             </button>
                         </div>
                     </div>
