@@ -17,7 +17,10 @@
 	let tcLink = '';
 	let copied2 = false;
 	let isShortening = false;
-	$: canShortenUrl = tcLink.startsWith('https://daoucokr.sharepoint.com/:x:/r/sites/syscore/_layouts/15/Doc.aspx?sourcedoc=') && !isShortening;
+	$: canShortenUrl =
+		tcLink.startsWith(
+			'https://daoucokr.sharepoint.com/:x:/r/sites/syscore/_layouts/15/Doc.aspx?sourcedoc='
+		) && !isShortening;
 
 	// --- Logic for "개발 승인 요청" ---
 	function validateEffort(value) {
@@ -44,7 +47,9 @@
 		.join('<br />\n');
 	$: formattedStartDate = startDate.replace(/-/g, '/');
 	$: formattedTargetDate = targetDate.replace(/-/g, '/');
-	$: remarksSection = remarks.trim() ? `\n<p>■ 비고<br />\n${formatToList(remarks.split('\n'))}` : '';
+	$: remarksSection = remarks.trim()
+		? `\n<p>■ 비고<br />\n${formatToList(remarks.split('\n'))}`
+		: '';
 	$: resultText1 = `<p>아래와 같이 공수 및 개발 일정을 산정하였습니다.<br />
 확인 부탁 드립니다.</p>
 
@@ -148,9 +153,10 @@ ${formattedDetailedEffort}</p>
 					<h2 class="card-title">입력</h2>
 					<div class="grid grid-cols-2 gap-4">
 						<div class="form-control w-full">
-							<label class="label" for="dev-effort"
-								><span class="label-text">개발공수 (D)</span></label
-							><input
+							<label class="label" for="dev-effort">
+								<span class="label-text">개발공수 (D)</span>
+							</label>
+							<input
 								id="dev-effort"
 								type="number"
 								class="input-bordered input w-full"
@@ -162,9 +168,10 @@ ${formattedDetailedEffort}</p>
 							/>
 						</div>
 						<div class="form-control w-full">
-							<label class="label" for="test-effort"
-								><span class="label-text">테스트 공수 (D)</span></label
-							><input
+							<label class="label" for="test-effort">
+								<span class="label-text">테스트 공수 (D)</span>
+							</label>
+							<input
 								id="test-effort"
 								type="number"
 								class="input-bordered input w-full"
@@ -177,9 +184,9 @@ ${formattedDetailedEffort}</p>
 						</div>
 					</div>
 					<div class="form-control relative w-full">
-						<label class="label" for="detailed-effort"
-							><span class="label-text">상세 개발 공수 (한 줄에 하나씩)</span></label
-						>
+						<label class="label" for="detailed-effort">
+							<span class="label-text">상세 개발 공수 (한 줄에 하나씩)</span>
+						</label>
 						<textarea
 							id="detailed-effort"
 							class="textarea-bordered textarea h-24 w-full"
@@ -189,8 +196,10 @@ ${formattedDetailedEffort}</p>
 					</div>
 					<div class="grid grid-cols-2 gap-4">
 						<div class="form-control w-full">
-							<label class="label" for="start-date"><span class="label-text">시작일</span></label
-							><input
+							<label class="label" for="start-date">
+								<span class="label-text">시작일</span>
+							</label>
+							<input
 								id="start-date"
 								type="date"
 								class="input-bordered input w-full"
@@ -199,8 +208,10 @@ ${formattedDetailedEffort}</p>
 							/>
 						</div>
 						<div class="form-control w-full">
-							<label class="label" for="target-date"><span class="label-text">목표일</span></label
-							><input
+							<label class="label" for="target-date">
+								<span class="label-text">목표일</span>
+							</label>
+							<input
 								id="target-date"
 								type="date"
 								class="input-bordered input w-full"
@@ -210,7 +221,10 @@ ${formattedDetailedEffort}</p>
 						</div>
 					</div>
 					<div class="form-control w-full">
-						<label class="label" for="remarks"><span class="label-text">비고</span></label><textarea
+						<label class="label" for="remarks">
+							<span class="label-text">비고</span>
+						</label>
+						<textarea
 							id="remarks"
 							class="textarea-bordered textarea h-24 w-full"
 							bind:value={remarks}
@@ -223,9 +237,9 @@ ${formattedDetailedEffort}</p>
 				<div class="card-body">
 					<div class="mb-2 flex items-center justify-between">
 						<h2 class="card-title">결과</h2>
-						<button class="btn btn-sm btn-primary" on:click={copyToClipboard1}
-							>{#if copied1}복사 완료!{:else}복사하기{/if}</button
-						>
+						<button class="btn btn-sm btn-primary" on:click={copyToClipboard1}>
+							{#if copied1}복사 완료!{:else}복사하기{/if}
+						</button>
 					</div>
 					<div class="form-control">
 						<!--suppress HtmlUnknownAttribute -->
@@ -245,7 +259,9 @@ ${formattedDetailedEffort}</p>
 				<div class="card-body">
 					<h2 class="card-title">입력</h2>
 					<div class="form-control w-full">
-						<label class="label" for="end-date"><span class="label-text">종료일</span></label>
+						<label class="label" for="end-date">
+							<span class="label-text">종료일</span>
+						</label>
 						<input
 							id="end-date"
 							type="date"
@@ -255,9 +271,9 @@ ${formattedDetailedEffort}</p>
 						/>
 					</div>
 					<div class="form-control relative w-full">
-						<label class="label" for="pr-link"
-							><span class="label-text">PR 링크 (한 줄에 하나씩)</span></label
-						>
+						<label class="label" for="pr-link">
+							<span class="label-text">PR 링크 (한 줄에 하나씩)</span>
+						</label>
 						<textarea
 							id="pr-link"
 							class="textarea-bordered textarea h-24 w-full"
@@ -266,7 +282,9 @@ ${formattedDetailedEffort}</p>
 						></textarea>
 					</div>
 					<div class="form-control w-full">
-						<label class="label" for="tc-link"><span class="label-text">TC 링크</span></label>
+						<label class="label" for="tc-link">
+							<span class="label-text">TC 링크</span>
+						</label>
 						<div class="join w-full">
 							<input
 								id="tc-link"
@@ -291,9 +309,9 @@ ${formattedDetailedEffort}</p>
 				<div class="card-body">
 					<div class="mb-2 flex items-center justify-between">
 						<h2 class="card-title">결과</h2>
-						<button class="btn btn-sm btn-primary" on:click={copyToClipboard2}
-							>{#if copied2}복사 완료!{:else}복사하기{/if}</button
-						>
+						<button class="btn btn-sm btn-primary" on:click={copyToClipboard2}>
+							{#if copied2}복사 완료!{:else}복사하기{/if}
+						</button>
 					</div>
 					<div class="form-control">
 						<!--suppress HtmlUnknownAttribute -->

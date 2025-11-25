@@ -33,27 +33,31 @@
 	// Formatting logic
 	$: output = (() => {
 		const date = new Date(deploymentDateTime);
-				const formattedDate = `${date.getFullYear()}년도 ${
-					date.getMonth() + 1
-				}월 ${date.getDate()}일 ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+		const formattedDate = `${date.getFullYear()}년도 ${
+			date.getMonth() + 1
+		}월 ${date.getDate()}일 ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
 
-				const fields = [
-					{ label: '작업 사유', value: reason },
-					{ label: '작업 내용 (상세)', value: details },
-					{ label: '작업 구분', value: type },
-					{ label: '대상 시스템', value: system },
-					{ label: '대상 테이블명', value: table },
-					{ label: '운영 작업 예상 영향도', value: impact },
-					{ label: '운영(검수) 반영일시', value: formattedDate },
-					{ label: '백업 및 롤백계획', value: backup }
-				];
+		const fields = [
+			{ label: '작업 사유', value: reason },
+			{ label: '작업 내용 (상세)', value: details },
+			{ label: '작업 구분', value: type },
+			{ label: '대상 시스템', value: system },
+			{ label: '대상 테이블명', value: table },
+			{ label: '운영 작업 예상 영향도', value: impact },
+			{ label: '운영(검수) 반영일시', value: formattedDate },
+			{ label: '백업 및 롤백계획', value: backup }
+		];
 
-				const body = fields
-					.map((field) => `<tr><td style="width: 164px;"><p style="text-align: center;"><strong>${field.label}</strong></p></td>
-<td style="width: 631px;"><p>${formatToList(field.value.split('\n')) || '-'}</p></td></tr>`)
-					.join('\n');
+		const body = fields
+			.map(
+				(
+					field
+				) => `<tr><td style="width: 164px;"><p style="text-align: center;"><strong>${field.label}</strong></p></td>
+<td style="width: 631px;"><p>${formatToList(field.value.split('\n')) || '-'}</p></td></tr>`
+			)
+			.join('\n');
 
-				return `<p>안녕하세요. 시스템코어개발팀 ${assignee}입니다.<br />
+		return `<p>안녕하세요. 시스템코어개발팀 ${assignee}입니다.<br />
 아래 내용으로 DB 작업 요청드립니다.</p>
 
 <table border="1" cellpadding="1" cellspacing="1" style="width: 833px;">
@@ -63,7 +67,7 @@
 </table>
 
 <p>감사합니다.</p>`;
-			})();
+	})();
 	// Clipboard logic
 	let copied = false;
 	async function copyToClipboard() {
@@ -88,8 +92,10 @@
 				<h2 class="card-title">입력</h2>
 
 				<div class="form-control w-full">
-					<label for="assignee" class="label"><span class="label-text">담당자</span></label>
-					<select id="assignee" bind:value={assignee} class="select select-bordered w-full">
+					<label for="assignee" class="label">
+						<span class="label-text">담당자</span>
+					</label>
+					<select id="assignee" bind:value={assignee} class="select-bordered select w-full">
 						{#each assignees as name}
 							<option value={name}>{name}</option>
 						{/each}
@@ -97,7 +103,9 @@
 				</div>
 
 				<div class="form-control w-full">
-					<label for="reason" class="label"><span class="label-text">작업 사유</span></label>
+					<label for="reason" class="label">
+						<span class="label-text">작업 사유</span>
+					</label>
 					<textarea
 						id="reason"
 						bind:value={reason}
@@ -108,7 +116,9 @@
 				</div>
 
 				<div class="form-control w-full">
-					<label for="details" class="label"><span class="label-text">작업 내용(상세)</span></label>
+					<label for="details" class="label">
+						<span class="label-text">작업 내용(상세)</span>
+					</label>
 					<textarea
 						id="details"
 						bind:value={details}
@@ -119,7 +129,9 @@
 				</div>
 
 				<div class="form-control w-full">
-					<label for="type" class="label"><span class="label-text">작업 구분</span></label>
+					<label for="type" class="label">
+						<span class="label-text">작업 구분</span>
+					</label>
 					<textarea
 						id="type"
 						bind:value={type}
@@ -130,7 +142,9 @@
 				</div>
 
 				<div class="form-control w-full">
-					<label for="system" class="label"><span class="label-text">대상 시스템</span></label>
+					<label for="system" class="label">
+						<span class="label-text">대상 시스템</span>
+					</label>
 					<textarea
 						id="system"
 						bind:value={system}
@@ -141,7 +155,9 @@
 				</div>
 
 				<div class="form-control w-full">
-					<label for="table" class="label"><span class="label-text">대상 테이블명</span></label>
+					<label for="table" class="label">
+						<span class="label-text">대상 테이블명</span>
+					</label>
 					<textarea
 						id="table"
 						bind:value={table}
@@ -152,9 +168,9 @@
 				</div>
 
 				<div class="form-control w-full">
-					<label for="impact" class="label"
-						><span class="label-text">운영 작업 예상 영향도</span></label
-					>
+					<label for="impact" class="label">
+						<span class="label-text">운영 작업 예상 영향도</span>
+					</label>
 					<textarea
 						id="impact"
 						bind:value={impact}
@@ -165,21 +181,21 @@
 				</div>
 
 				<div class="form-control w-full">
-					<label for="deploymentDateTime" class="label"
-						><span class="label-text">운영(검수) 반영일시</span></label
-					>
+					<label for="deploymentDateTime" class="label">
+						<span class="label-text">운영(검수) 반영일시</span>
+					</label>
 					<input
 						type="datetime-local"
 						id="deploymentDateTime"
 						bind:value={deploymentDateTime}
-						class="input input-bordered w-full"
+						class="input-bordered input w-full"
 					/>
 				</div>
 
 				<div class="form-control w-full">
-					<label for="backup" class="label"
-						><span class="label-text">백업 및 롤백 계획</span></label
-					>
+					<label for="backup" class="label">
+						<span class="label-text">백업 및 롤백 계획</span>
+					</label>
 					<textarea
 						id="backup"
 						bind:value={backup}

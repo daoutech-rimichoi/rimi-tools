@@ -208,7 +208,9 @@ ${sections.join('\n')}
 
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 					<div class="form-control w-full">
-						<label for="service" class="label"><span class="label-text">서비스</span></label>
+						<label for="service" class="label">
+							<span class="label-text">서비스</span>
+						</label>
 						<select id="service" bind:value={$service} class="select-bordered select w-full">
 							{#each services as s (s.value)}
 								<option value={s.value}>{s.label}</option>
@@ -217,9 +219,9 @@ ${sections.join('\n')}
 					</div>
 
 					<div class="form-control w-full">
-						<label for="deploymentType" class="label"
-							><span class="label-text">배포 타입</span></label
-						>
+						<label for="deploymentType" class="label">
+							<span class="label-text">배포 타입</span>
+						</label>
 						<select
 							id="deploymentType"
 							bind:value={$deploymentType}
@@ -235,7 +237,9 @@ ${sections.join('\n')}
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 					<!-- Combined Developer and Work Time -->
 					<div class="form-control w-full">
-						<label for="developer" class="label"><span class="label-text">담당자</span></label>
+						<label for="developer" class="label">
+							<span class="label-text">담당자</span>
+						</label>
 						<select id="developer" bind:value={$developer} class="select-bordered select w-full">
 							{#each developers as d (d)}
 								<option value={d}>{d}</option>
@@ -244,7 +248,9 @@ ${sections.join('\n')}
 					</div>
 
 					<div class="form-control w-full">
-						<label for="workTime" class="label"><span class="label-text">작업 시간</span></label>
+						<label for="workTime" class="label">
+							<span class="label-text">작업 시간</span>
+						</label>
 						<input
 							id="workTime"
 							type="datetime-local"
@@ -256,7 +262,9 @@ ${sections.join('\n')}
 				</div>
 
 				<div class="form-control w-full">
-					<h3 class="label"><span class="label-text">대상 프로세스</span></h3>
+					<h3 class="label">
+						<span class="label-text">대상 프로세스</span>
+					</h3>
 					<div class="block space-y-2 rounded-lg border border-base-300 bg-base-200 p-2">
 						{#if availableProcesses.length > 0}
 							{#each availableProcesses as process (process)}
@@ -279,9 +287,9 @@ ${sections.join('\n')}
 				</div>
 
 				<div class="form-control w-full">
-					<label for="workDescription" class="label"
-						><span class="label-text">작업 내용 (한 줄에 하나씩)</span></label
-					>
+					<label for="workDescription" class="label">
+						<span class="label-text">작업 내용 (한 줄에 하나씩)</span>
+					</label>
 					<textarea
 						id="workDescription"
 						bind:value={$workDescription}
@@ -292,7 +300,9 @@ ${sections.join('\n')}
 				</div>
 
 				<div class="form-control w-full">
-					<label for="remarks" class="label"><span class="label-text">비고</span></label>
+					<label for="remarks" class="label">
+						<span class="label-text">비고</span>
+					</label>
 					<textarea
 						id="remarks"
 						bind:value={$remarks}
@@ -309,12 +319,12 @@ ${sections.join('\n')}
 			<div class="card-body">
 				<h2 class="mb-4 card-title">결과</h2>
 				<div class="form-control mb-4 w-full">
-					<label for="outputTitle" class="label flex items-center justify-between">
-						<span class="label-text">제목</span>
+					<div class="label flex items-center justify-between">
+						<label for="outputTitle" class="label-text">제목</label>
 						<button on:click={copyTitleToClipboard} class="btn btn-sm btn-primary">
 							{#if copiedTitle}복사 완료!{:else}제목 복사하기{/if}
 						</button>
-					</label>
+					</div>
 					<input
 						id="outputTitle"
 						type="text"
@@ -324,12 +334,12 @@ ${sections.join('\n')}
 					/>
 				</div>
 				<div class="form-control w-full">
-					<label for="outputBody" class="label flex items-center justify-between">
-						<span class="label-text">본문</span>
+					<div class="label flex items-center justify-between">
+						<label for="outputBody" class="label-text">본문</label>
 						<button on:click={copyBodyToClipboard} class="btn btn-sm btn-primary">
 							{#if copiedBody}복사 완료!{:else}본문 복사하기{/if}
 						</button>
-					</label>
+					</div>
 					<!--suppress HtmlUnknownAttribute -->
 					<textarea
 						id="outputBody"

@@ -21,7 +21,7 @@
 	// State variables for textareas using the persistent store
 	const approved = createPersistentStore('deployment_approved', '');
 	const pending = createPersistentStore('deployment_pending', '');
-	const jira = createPersistentStore('deployment_jira', '');
+	const redmine = createPersistentStore('deployment_redmine', '');
 	const scenario = createPersistentStore('deployment_scenario', '');
 	let title = '';
 
@@ -54,13 +54,13 @@
 
 	$: formattedApproved = formatToList($approved);
 	$: formattedPending = formatToList($pending);
-	$: formattedJira = formatToList($jira, '  - ');
+	$: formattedRedmine = formatToList($redmine, '  - ');
 	$: formattedScenario = formatToList($scenario, '  - ');
 
 	$: sections = [
 		{ title: '■ 승인 완료', content: formattedApproved },
 		{ title: '■ 승인 대기', content: formattedPending },
-		{ title: '※ 배포 요청 JIRA', content: formattedJira },
+		{ title: '※ 배포 요청 Redmine', content: formattedRedmine },
 		{ title: '※ 비고', content: formattedScenario }
 	];
 
@@ -92,9 +92,9 @@
 			<div class="card-body space-y-4">
 				<h2 class="card-title">입력</h2>
 				<div class="form-control w-full">
-					<label for="approved" class="label"
-						><span class="label-text">■ 승인 완료 (한 줄에 하나씩)</span></label
-					>
+					<label for="approved" class="label">
+						<span class="label-text">■ 승인 완료 (한 줄에 하나씩)</span>
+					</label>
 					<textarea
 						id="approved"
 						bind:value={$approved}
@@ -104,9 +104,9 @@
 					></textarea>
 				</div>
 				<div class="form-control w-full">
-					<label for="pending" class="label"
-						><span class="label-text">■ 승인 대기 (한 줄에 하나씩)</span></label
-					>
+					<label for="pending" class="label">
+						<span class="label-text">■ 승인 대기 (한 줄에 하나씩)</span>
+					</label>
 					<textarea
 						id="pending"
 						bind:value={$pending}
@@ -116,21 +116,21 @@
 					></textarea>
 				</div>
 				<div class="form-control w-full">
-					<label for="jira" class="label"
-						><span class="label-text">※ 배포 요청 문서 (한 줄에 하나씩)</span></label
-					>
+					<label for="redmine" class="label">
+						<span class="label-text">※ 배포 요청 Redmine (한 줄에 하나씩)</span>
+					</label>
 					<textarea
-						id="jira"
-						bind:value={$jira}
+						id="redmine"
+						bind:value={$redmine}
 						rows="5"
 						class="textarea-bordered textarea w-full"
-						placeholder="[대기] 비즈뿌리오 웹/배치 (NSVCOPS-3276)"
+						placeholder="[대기] 비즈뿌리오 웹/배치 (137)"
 					></textarea>
 				</div>
 				<div class="form-control w-full">
-					<label for="scenario" class="label"
-						><span class="label-text">※ 비고 (한 줄에 하나씩)</span></label
-					>
+					<label for="scenario" class="label">
+						<span class="label-text">※ 비고 (한 줄에 하나씩)</span>
+					</label>
 					<textarea
 						id="scenario"
 						bind:value={$scenario}
