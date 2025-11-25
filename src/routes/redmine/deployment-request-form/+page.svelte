@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
 	import { SvelteDate } from 'svelte/reactivity';
+	import HtmlPreviewModal from '$lib/components/HtmlPreviewModal.svelte';
 
 	// --- State Variables using Writable Store ---
 	const service = writable('bizsales');
@@ -13,6 +14,7 @@
 	const remarks = writable('');
 	let copiedTitle = false;
 	let copiedBody = false;
+	let showPreview = false;
 
 	// --- Options for Selects ---
 	const services = [
@@ -336,9 +338,14 @@ ${sections.join('\n')}
 				<div class="form-control w-full">
 					<div class="label flex items-center justify-between">
 						<label for="outputBody" class="label-text">본문</label>
-						<button on:click={copyBodyToClipboard} class="btn btn-sm btn-primary">
-							{#if copiedBody}복사 완료!{:else}본문 복사하기{/if}
-						</button>
+						<div class="flex gap-2">
+							<button on:click={() => (showPreview = true)} class="btn btn-sm btn-secondary">
+								미리보기
+							</button>
+							<button on:click={copyBodyToClipboard} class="btn btn-sm btn-primary">
+								{#if copiedBody}복사 완료!{:else}본문 복사하기{/if}
+							</button>
+						</div>
 					</div>
 					<!--suppress HtmlUnknownAttribute -->
 					<textarea
@@ -353,3 +360,6 @@ ${sections.join('\n')}
 		</div>
 	</div>
 </div>
+
+<HtmlPreviewModal bind:isOpen={showPreview} htmlContent={outputBody} />
+

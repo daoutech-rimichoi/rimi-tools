@@ -1,12 +1,15 @@
 <script>
+	import HtmlPreviewModal from '$lib/components/HtmlPreviewModal.svelte';
+
+	import { SvelteDate } from 'svelte/reactivity';
+
 	// Function to get today's date at 18:00 in YYYY-MM-DDTHH:mm format
 	function getDefaultDateTime() {
-		const now = new Date();
+		const now = new SvelteDate();
 		now.setHours(18, 0, 0, 0);
 		// Adjust for timezone offset
 		const timezoneOffset = now.getTimezoneOffset() * 60000;
-		const localISOTime = new Date(now.getTime() - timezoneOffset).toISOString().slice(0, 16);
-		return localISOTime;
+		return new SvelteDate(now.getTime() - timezoneOffset).toISOString().slice(0, 16);
 	}
 
 	function formatToList(items) {
@@ -32,7 +35,7 @@
 
 	// Formatting logic
 	$: output = (() => {
-		const date = new Date(deploymentDateTime);
+		const date = new SvelteDate(deploymentDateTime);
 		const formattedDate = `${date.getFullYear()}년도 ${
 			date.getMonth() + 1
 		}월 ${date.getDate()}일 ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
@@ -70,6 +73,7 @@
 	})();
 	// Clipboard logic
 	let copied = false;
+	let showPreview = false;
 	async function copyToClipboard() {
 		try {
 			await navigator.clipboard.writeText(output);
@@ -96,7 +100,7 @@
 						<span class="label-text">담당자</span>
 					</label>
 					<select id="assignee" bind:value={assignee} class="select-bordered select w-full">
-						{#each assignees as name}
+						{#each assignees as name (name)}
 							<option value={name}>{name}</option>
 						{/each}
 					</select>
@@ -212,9 +216,14 @@
 			<div class="card-body">
 				<div class="mb-2 flex items-center justify-between">
 					<h2 class="card-title">결과</h2>
-					<button on:click={copyToClipboard} class="btn btn-sm btn-primary">
-						{#if copied}복사 완료!{:else}복사하기{/if}
-					</button>
+					<div class="flex gap-2">
+						<button on:click={() => (showPreview = true)} class="btn btn-sm btn-secondary">
+							미리보기
+						</button>
+						<button on:click={copyToClipboard} class="btn btn-sm btn-primary">
+							{#if copied}복사 완료!{:else}복사하기{/if}
+						</button>
+					</div>
 				</div>
 				<textarea
 					id="output"
@@ -227,3 +236,6 @@
 		</div>
 	</div>
 </div>
+
+<HtmlPreviewModal bind:isOpen={showPreview} htmlContent={output} />
+

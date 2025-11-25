@@ -1,5 +1,6 @@
 <script>
 	import { SvelteDate } from 'svelte/reactivity';
+	import HtmlPreviewModal from '$lib/components/HtmlPreviewModal.svelte';
 
 	// --- State for "개발 승인 요청" ---
 	let devEffort = 1;
@@ -10,12 +11,14 @@
 	let startDate = today;
 	let targetDate = today;
 	let copied1 = false;
+	let showPreview1 = false;
 
 	// --- State for "개발 완료 승인 요청" ---
 	let endDate = today;
 	let prLink = '';
 	let tcLink = '';
 	let copied2 = false;
+	let showPreview2 = false;
 	let isShortening = false;
 	$: canShortenUrl =
 		tcLink.startsWith(
@@ -237,9 +240,14 @@ ${formattedDetailedEffort}</p>
 				<div class="card-body">
 					<div class="mb-2 flex items-center justify-between">
 						<h2 class="card-title">결과</h2>
-						<button class="btn btn-sm btn-primary" on:click={copyToClipboard1}>
-							{#if copied1}복사 완료!{:else}복사하기{/if}
-						</button>
+						<div class="flex gap-2">
+							<button class="btn btn-sm btn-secondary" on:click={() => (showPreview1 = true)}>
+								미리보기
+							</button>
+							<button class="btn btn-sm btn-primary" on:click={copyToClipboard1}>
+								{#if copied1}복사 완료!{:else}복사하기{/if}
+							</button>
+						</div>
 					</div>
 					<div class="form-control">
 						<!--suppress HtmlUnknownAttribute -->
@@ -309,9 +317,14 @@ ${formattedDetailedEffort}</p>
 				<div class="card-body">
 					<div class="mb-2 flex items-center justify-between">
 						<h2 class="card-title">결과</h2>
-						<button class="btn btn-sm btn-primary" on:click={copyToClipboard2}>
-							{#if copied2}복사 완료!{:else}복사하기{/if}
-						</button>
+						<div class="flex gap-2">
+							<button class="btn btn-sm btn-secondary" on:click={() => (showPreview2 = true)}>
+								미리보기
+							</button>
+							<button class="btn btn-sm btn-primary" on:click={copyToClipboard2}>
+								{#if copied2}복사 완료!{:else}복사하기{/if}
+							</button>
+						</div>
 					</div>
 					<div class="form-control">
 						<!--suppress HtmlUnknownAttribute -->
@@ -323,3 +336,7 @@ ${formattedDetailedEffort}</p>
 		</div>
 	</div>
 </div>
+
+<HtmlPreviewModal bind:isOpen={showPreview1} htmlContent={resultText1} />
+<HtmlPreviewModal bind:isOpen={showPreview2} htmlContent={resultText2} />
+
