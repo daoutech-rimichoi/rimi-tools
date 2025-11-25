@@ -10,6 +10,21 @@
             close();
         }
     }
+
+    function handleKeydown(event) {
+        if (event.key === 'Escape') {
+            close();
+        }
+    }
+
+    $effect(() => {
+        if (isOpen) {
+            window.addEventListener('keydown', handleKeydown);
+            return () => {
+                window.removeEventListener('keydown', handleKeydown);
+            };
+        }
+    });
 </script>
 
 {#if isOpen}
