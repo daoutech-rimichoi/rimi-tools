@@ -121,9 +121,9 @@
 
     const serviceMap = {
         bizsales: '영업관리시스템',
-        bizpp: '비즈뿌리오',
+        bizpp: '비즈뿌리오 웹',
         JavaASP: 'JavaASP',
-        ufit: '유핏',
+        ufit: '유핏 웹',
         numball: '번호자원관리시스템'
     };
 
@@ -134,7 +134,7 @@
 
     // --- Reactive Output Generation ---
     $: formattedWorkTime = $workTime ? $workTime.replace('T', ' ') : '';
-    $: outputTitle = `[배포요청] ${serviceMap[$service]} 배포 요청`;
+    $: outputTitle = `[${serviceMap[$service]}] 서비스 배포 요청`;
     $: outputBody = (() => {
         const sections = [];
         if ($selectedProcesses && $selectedProcesses.length > 0) {
