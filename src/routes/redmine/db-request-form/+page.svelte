@@ -25,13 +25,42 @@
     let reason = '';
     let details = '';
     let type = '';
-    let system = '';
+    let environment = 'custom'; // 검수, 운영, 직접입력
+    let selectedSystems = [];
+    let customSystem = '';
     let table = '';
     let impact = '';
     let backup = '';
     let deploymentDateTime = getDefaultDateTime();
 
     const assignees = ['최경림', '김준혁', '김지웅', '전하라', '오용상', '배윤희', '한수찬'];
+    
+    const environmentOptions = [
+				{value: 'custom', label: '직접입력'},
+        {value: 'select', label: '검수/운영'},
+    ];
+    
+    const systemOptions = {
+				select: ['advance', 'nextasp_db', 'orient_db', 'optimus_db', 'alice_db', 'spamcop', 'yard01a', 'mercury', 'dr_db'],
+    };
+    
+    // Reactive variable for available systems
+    $: availableSystems = systemOptions[environment] || [];
+    
+    // Reset selected systems when environment changes
+    $: {
+        if (environment !== 'custom') {
+            selectedSystems = selectedSystems.filter((s) => availableSystems.includes(s));
+        }
+    }
+
+    // Calculate system value for output
+    $: system = (() => {
+        if (environment === 'custom') {
+            return customSystem;
+        }
+        return selectedSystems.join(', ');
+    })();
 
     // Formatting logic
     $: output = (() => {
@@ -148,17 +177,51 @@
                     ></textarea>
                 </div>
 
-                <div class="form-control w-full">
-                    <label for="system" class="label">
-                        <span class="label-text">대상 시스템</span>
-                    </label>
-                    <textarea
-                            id="system"
-                            bind:value={system}
-                            rows="2"
-                            class="textarea-bordered textarea w-full"
-                            placeholder="검수: 123.2.134.46:3306/nextasp_db&#10;운영: 172.16.72.43:3306/nextasp_db"
-                    ></textarea>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+									<div class="form-control w-full">
+											<label for="environment" class="label">
+												<span class="label-text">환경</span>
+											</label>
+											<select id="environment" bind:value={environment} class="select-bordered select w-full">
+												{#each environmentOptions as env (env.value)}
+													<option value={env.value}>{env.label}</option>
+												{/each}
+											</select>
+										</div>
+                    <div class="form-control w-full sm:col-span-2">
+                        <label class="label">
+                            <span class="label-text">대상 시스템</span>
+                        </label>
+                        {#if environment === 'custom'}
+                            <textarea
+                                    id="customSystem"
+                                    bind:value={customSystem}
+                                    rows="2"
+                                    class="textarea-bordered textarea w-full"
+                                    placeholder="검수: 123.2.134.46:3306/nextasp_db&#10;운영: 172.16.72.43:3306/nextasp_db"
+                            ></textarea>
+                        {:else}
+                            <div class="block space-y-2 rounded-lg border border-base-300 bg-base-200 p-2">
+                                {#if availableSystems.length > 0}
+                                    {#each availableSystems as systemOption (systemOption)}
+                                        <label class="flex cursor-pointer items-center">
+                                            <input
+                                                    type="checkbox"
+                                                    value={systemOption}
+                                                    bind:group={selectedSystems}
+                                                    class="checkbox checkbox-primary"
+                                            />
+                                            <span class="label-text ml-2">{systemOption}</span>
+                                        </label>
+                                    {/each}
+                                {:else}
+                                    <p class="text-sm text-base-content/70">
+                                        선택된 환경에 해당하는 시스템이 없습니다.
+                                    </p>
+                                {/if}
+                            </div>
+                        {/if}
+                    </div>
                 </div>
 
                 <div class="form-control w-full">
