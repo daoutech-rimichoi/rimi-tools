@@ -1,30 +1,35 @@
 <script>
     import {onMount} from 'svelte';
-    import {writable} from 'svelte/store';
-    import {browser} from '$app/environment';
     import {SvelteDate} from 'svelte/reactivity';
     import {copyToClipboard} from '$lib/utils/clipboard.js';
+    import {createSupabaseStore} from '$lib/stores/supabaseStore.js';
 
-    // Helper function to create a writable store that persists to localStorage
-    const createPersistentStore = (key, startValue) => {
-        const initialValue = (browser && localStorage.getItem(key)) || startValue;
-        const store = writable(initialValue);
-
-        store.subscribe((value) => {
-            if (browser) {
-                localStorage.setItem(key, value);
-            }
-        });
-
-        return store;
-    };
-
-    // State variables for textareas using the persistent store
-    const approved = createPersistentStore('deployment_approved', '');
-    const pending = createPersistentStore('deployment_pending', '');
-    const redmine = createPersistentStore('deployment_redmine', '');
-    const scenario = createPersistentStore('deployment_scenario', '');
+    // State variables for textareas using Supabase store (공유 데이터)
+    const approved = createSupabaseStore('deployment_approved', '');
+    const pending = createSupabaseStore('deployment_pending', '');
+    const redmine = createSupabaseStore('deployment_redmine', '');
+    const scenario = createSupabaseStore('deployment_scenario', '');
     let title = '';
+    let isSaving = false;
+
+    // 저장 함수
+    async function saveAll() {
+        isSaving = true;
+        try {
+            await Promise.all([
+                approved.save(),
+                pending.save(),
+                redmine.save(),
+                scenario.save()
+            ]);
+            alert('저장되었습니다!');
+        } catch (err) {
+            alert('저장 중 오류가 발생했습니다.');
+            console.error(err);
+        } finally {
+            isSaving = false;
+        }
+    }
 
     // Function to calculate the week number based on Wednesday
     function updateTitle() {
@@ -78,7 +83,12 @@
         <!-- Input Section -->
         <div class="card bg-base-100 shadow-xl">
             <div class="card-body space-y-4">
-                <h2 class="card-title">입력</h2>
+                <div class="flex items-center justify-between">
+                    <h2 class="card-title">입력</h2>
+                    <button on:click={saveAll} class="btn btn-sm btn-success" disabled={isSaving}>
+                        {isSaving ? '저장 중...' : '저장'}
+                    </button>
+                </div>
                 <div class="form-control w-full">
                     <label for="approved" class="label">
                         <span class="label-text">■ 승인 완료 (한 줄에 하나씩)</span>
