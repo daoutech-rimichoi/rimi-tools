@@ -64,6 +64,7 @@
         return text.split('\n').filter((line) => line.trim() !== '').length;
     }
 
+    $: approvedCount = countLines($approved);
     $: pendingCount = countLines($pending);
 
     $: formattedApproved = formatToList($approved);
@@ -72,7 +73,7 @@
     $: formattedScenario = formatToList($scenario, '  - ');
 
     $: sections = [
-        {title: '■ 승인 완료', content: formattedApproved},
+        {title: `■ 승인 완료 (${approvedCount}건)`, content: formattedApproved},
         {title: `■ 승인 대기 (${pendingCount}건)`, content: formattedPending},
         {title: '※ 배포 요청 Redmine', content: formattedRedmine},
         {title: '※ 비고', content: formattedScenario}
@@ -99,7 +100,7 @@
                 </div>
                 <div class="form-control w-full">
                     <label for="approved" class="label">
-                        <span class="label-text">■ 승인 완료 (한 줄에 하나씩)</span>
+                        <span class="label-text">■ 승인 완료 (한 줄에 하나씩) {approvedCount > 0 ? `- ${approvedCount}건` : ''}</span>
                     </label>
                     <textarea
                             id="approved"

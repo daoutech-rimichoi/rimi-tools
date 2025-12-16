@@ -86,16 +86,16 @@
             serverStatus[key] = { inUse: false, assignedTo: '' };
         }
         
-        // 사용중으로 변경하려고 할 때 담당자 선택 확인
+        // 사용중으로 변경하려고 할 때 사용자 선택 확인
         if (!serverStatus[key].inUse && !serverStatus[key].assignedTo) {
             event.preventDefault();
-            alert('담당자를 먼저 선택해주세요.');
+            alert('사용자를 먼저 선택해주세요.');
             return;
         }
         
         serverStatus[key].inUse = !serverStatus[key].inUse;
         
-        // 사용가능(false)으로 변경 시 담당자 리셋
+        // 사용가능(false)으로 변경 시 사용자 리셋
         if (!serverStatus[key].inUse) {
             serverStatus[key].assignedTo = '';
         }
