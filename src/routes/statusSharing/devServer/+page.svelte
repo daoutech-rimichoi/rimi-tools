@@ -201,6 +201,7 @@
     <div class="mb-8 text-center bg-gradient-to-r from-blue-500 to-purple-600 text-white py-8 rounded-2xl shadow-2xl">
         <h1 class="text-4xl font-bold mb-2">🔫 개발장비 현황판 🔫</h1>
         <p class="text-lg opacity-90">싸우지 말고 사용합시다~</p>
+        <p class="text-lg opacity-90">👊 사용 전 꼭 새로고침 👊</p>
     </div>
 
     {#if isLoading}
