@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS public.server_status (
     url TEXT NOT NULL DEFAULT '',
     in_use BOOLEAN DEFAULT false,
     assigned_to TEXT DEFAULT '',
+    display_order INTEGER DEFAULT 0,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE(env_type, service_name, environment_name)
 );
@@ -31,23 +32,23 @@ CREATE POLICY "Enable update access for all users" ON public.server_status
 ALTER PUBLICATION supabase_realtime ADD TABLE public.server_status;
 
 -- 5. 초기 데이터 삽입 (개발 + 검수 통합)
-INSERT INTO public.server_status (env_type, service_name, environment_name, url, in_use, assigned_to) VALUES
+INSERT INTO public.server_status (env_type, service_name, environment_name, url, in_use, assigned_to, display_order) VALUES
     -- 개발장비 (dev)
-    ('dev', '비즈뿌리오 웹', 'test0', 'https://dev.bizppurio.com:14119/', false, ''),
-    ('dev', '비즈뿌리오 웹', 'test1', 'https://dev-test1.bizppurio.com:14119/', false, ''),
-    ('dev', '비즈뿌리오 웹', 'test2', 'https://dev-test2.bizppurio.com:14119/', false, ''),
-    ('dev', '비즈뿌리오 배치', 'test0', '', false, ''),
-    ('dev', '비즈뿌리오 배치', 'test1', '', false, ''),
-    ('dev', '비즈뿌리오 배치', 'test2', '', false, ''),
-    ('dev', 'KAPI', 'test', '', false, ''),
-    ('dev', '영업관리시스템', 'test0', 'https://dev-bizsales.ppurio.com:14110/login.do', false, ''),
-    ('dev', '영업관리시스템', 'test1', 'https://dev-bizsales-test1.ppurio.com:14110/login.do', false, ''),
-    ('dev', '유핏', 'test', 'https://dev.ufit.co.kr:6261/', false, ''),
+    ('dev', '비즈뿌리오 웹', 'test0', 'https://dev.bizppurio.com:14119/', false, '', 1),
+    ('dev', '비즈뿌리오 웹', 'test1', 'https://dev-test1.bizppurio.com:14119/', false, '', 1),
+    ('dev', '비즈뿌리오 웹', 'test2', 'https://dev-test2.bizppurio.com:14119/', false, '', 1),
+    ('dev', '비즈뿌리오 배치', 'test0', '', false, '', 2),
+    ('dev', '비즈뿌리오 배치', 'test1', '', false, '', 2),
+    ('dev', '비즈뿌리오 배치', 'test2', '', false, '', 2),
+    ('dev', 'KAPI', 'test', '', false, '', 3),
+    ('dev', '영업관리시스템', 'test0', 'https://dev-bizsales.ppurio.com:14110/login.do', false, '', 4),
+    ('dev', '영업관리시스템', 'test1', 'https://dev-bizsales-test1.ppurio.com:14110/login.do', false, '', 4),
+    ('dev', '유핏', 'test', 'https://dev.ufit.co.kr:6261/', false, '', 5),
     -- 검수장비 (stg)
-    ('stg', '비즈뿌리오 웹', 'stg', 'https://stg.bizppurio.com:14119/', false, ''),
-    ('stg', '비즈뿌리오 배치', 'stg', '', false, ''),
-    ('stg', 'KAPI', 'stg', '', false, ''),
-    ('stg', '영업관리시스템', 'stg', 'https://stg-bizsales.ppurio.com:14110/login.do', false, ''),
-    ('stg', '유핏', 'stg', 'https://stg.ufit.co.kr:6261/', false, '')
+    ('stg', '비즈뿌리오 웹', 'stg', 'https://stg.bizppurio.com:14119/', false, '', 1),
+    ('stg', '비즈뿌리오 배치', 'stg', '', false, '', 2),
+    ('stg', 'KAPI', 'stg', '', false, '', 3),
+    ('stg', '영업관리시스템', 'stg', 'https://stg-bizsales.ppurio.com:14110/login.do', false, '', 4),
+    ('stg', '유핏', 'stg', 'https://stg.ufit.co.kr:6261/', false, '', 5)
 ON CONFLICT (env_type, service_name, environment_name) DO NOTHING;
 

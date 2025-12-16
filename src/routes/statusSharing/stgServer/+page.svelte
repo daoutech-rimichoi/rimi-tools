@@ -5,39 +5,7 @@
 
     const users = USER_NAMES;
 
-    const servers = [
-        {
-            service: '비즈뿌리오 웹',
-            environments: [
-                { name: 'stg', url: 'https://stg.bizppurio.com:14119/' }
-            ]
-        },
-        {
-            service: '비즈뿌리오 배치',
-            environments: [
-                { name: 'stg', url: '' }
-            ]
-        },
-        {
-            service: 'KAPI',
-            environments: [
-                { name: 'stg', url: '' }
-            ]
-        },
-        {
-            service: '영업관리시스템',
-            environments: [
-                { name: 'stg', url: 'https://stg-bizsales.ppurio.com:14110/login.do' }
-            ]
-        },
-        {
-            service: '유핏',
-            environments: [
-                { name: 'stg', url: 'https://stg.ufit.co.kr:6261/' }
-            ]
-        }
-    ];
-
+    let servers = [];
     let serverStatus = {};
     let isLoading = true;
     let toastMessage = '';
@@ -63,13 +31,33 @@
         try {
             const { data, error } = await supabase
                 .from('server_status')
-                .select('service_name, environment_name, in_use, assigned_to, updated_at')
-                .eq('env_type', 'stg');
+                .select('service_name, environment_name, url, in_use, assigned_to, updated_at, display_order')
+                .eq('env_type', 'stg')
+                .order('display_order', { ascending: true })
+                .order('service_name', { ascending: true })
+                .order('environment_name', { ascending: true });
 
             if (error && error.code !== 'PGRST116') {
                 console.error('Error loading server status:', error);
-                initializeServerStatus();
             } else if (data && data.length > 0) {
+                // servers 배열 구성
+                const serviceMap = new Map();
+                data.forEach(item => {
+                    if (!serviceMap.has(item.service_name)) {
+                        serviceMap.set(item.service_name, []);
+                    }
+                    serviceMap.get(item.service_name).push({
+                        name: item.environment_name,
+                        url: item.url
+                    });
+                });
+                
+                servers = Array.from(serviceMap.entries()).map(([service, environments]) => ({
+                    service,
+                    environments
+                }));
+
+                // serverStatus 구성
                 serverStatus = {};
                 data.forEach(item => {
                     const key = getServerKey(item.service_name, item.environment_name);
@@ -79,30 +67,15 @@
                         updatedAt: item.updated_at
                     };
                 });
-            } else {
-                initializeServerStatus();
             }
         } catch (err) {
             console.error('Failed to load server status:', err);
-            initializeServerStatus();
         } finally {
             isLoading = false;
         }
     }
 
-    function initializeServerStatus() {
-        serverStatus = {};
-        servers.forEach(service => {
-            service.environments.forEach(env => {
-                const key = `${service.service}_${env.name}`;
-                serverStatus[key] = {
-                    inUse: false,
-                    assignedTo: '',
-                    updatedAt: null
-                };
-            });
-        });
-    }
+
 
     function getServerKey(serviceName, envName) {
         return `${serviceName}_${envName}`;
