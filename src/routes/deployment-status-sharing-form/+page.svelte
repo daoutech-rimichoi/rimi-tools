@@ -58,6 +58,14 @@
             .join('\n');
     }
 
+    // 라인 수 계산 함수
+    function countLines(text) {
+        if (!text || !text.trim()) return 0;
+        return text.split('\n').filter((line) => line.trim() !== '').length;
+    }
+
+    $: pendingCount = countLines($pending);
+
     $: formattedApproved = formatToList($approved);
     $: formattedPending = formatToList($pending);
     $: formattedRedmine = formatToList($redmine, '  - ');
@@ -65,7 +73,7 @@
 
     $: sections = [
         {title: '■ 승인 완료', content: formattedApproved},
-        {title: '■ 승인 대기', content: formattedPending},
+        {title: `■ 승인 대기 (${pendingCount}건)`, content: formattedPending},
         {title: '※ 배포 요청 Redmine', content: formattedRedmine},
         {title: '※ 비고', content: formattedScenario}
     ];
@@ -103,7 +111,7 @@
                 </div>
                 <div class="form-control w-full">
                     <label for="pending" class="label">
-                        <span class="label-text">■ 승인 대기 (한 줄에 하나씩)</span>
+                        <span class="label-text">■ 승인 대기 (한 줄에 하나씩) {pendingCount > 0 ? `- ${pendingCount}건` : ''}</span>
                     </label>
                     <textarea
                             id="pending"
