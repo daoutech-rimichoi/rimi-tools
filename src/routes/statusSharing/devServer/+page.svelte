@@ -142,8 +142,6 @@
         if (!serverStatus[key]) {
             serverStatus[key] = { inUse: false, assignedTo: '', updatedAt: null };
         }
-        
-        const previousAssignedTo = serverStatus[key].assignedTo;
         serverStatus[key].assignedTo = user;
         
         // 사용자 변경 시 사용여부 자동으로 false로 변경
@@ -152,11 +150,6 @@
         }
         
         serverStatus = { ...serverStatus };
-        
-        // "사용자 선택" (빈 값)으로 변경한 경우에만 DB 저장
-        if (user === '' && previousAssignedTo !== '') {
-            await saveToDb(serviceName, envName);
-        }
     }
 
     async function saveToDb(serviceName, envName) {
@@ -197,12 +190,12 @@
     }
 </script>
 
-<div class="container mx-auto p-6">
-    <div class="mb-8 text-center bg-gradient-to-r from-blue-500 to-purple-600 text-white py-8 rounded-2xl shadow-2xl">
-        <h1 class="text-4xl font-bold mb-2">🔫 개발장비 현황판 🔫</h1>
-        <p class="text-lg opacity-90">싸우지 말고 사용합시다~</p>
-        <p class="text-lg opacity-90">👊 사용 전 꼭 새로고침 👊</p>
-    </div>
+<div class="container mx-auto p-4">
+	<div class="mb-8 text-center bg-gradient-to-r from-blue-500 to-purple-600 text-white py-8 rounded-2xl shadow-2xl">
+		<h1 class="text-4xl font-bold mb-2">🔫 개발장비 현황판 🔫</h1>
+		<p class="text-lg opacity-90">싸우지 말고 사용합시다~</p>
+		<p class="text-lg opacity-90">👊 사용 전 꼭 새로고침 👊</p>
+	</div>
 
     {#if isLoading}
         <div class="flex justify-center p-12">
@@ -211,43 +204,58 @@
     {:else}
         <div class="space-y-6">
             {#each servers as service, index}
-                <div class="card bg-base-100 shadow-2xl border-2 border-base-300 hover:shadow-3xl transition-all duration-300">
+                {#if index > 0}
+                    <div class="divider"></div>
+                {/if}
+                <div class="card bg-base-100 shadow-xl">
                     <div class="card-body">
-                        <h2 class="card-title text-2xl mb-4 pb-2 border-b-2 border-primary">
-                            <span class="badge badge-primary badge-lg mr-2">{service.service}</span>
-                        </h2>
+                        <h2 class="card-title text-2xl">{service.service}</h2>
                         <div class="overflow-x-auto">
-                            <table class="table table-zebra">
+                            <table class="table">
                                 <thead>
-                                    <tr class="bg-base-300">
-                                        <th class="w-1/6 text-base">환경</th>
-                                        <th class="w-1/4 text-base">사용자</th>
-                                        <th class="w-1/3 text-base">사용여부</th>
-                                        <th class="w-1/4 text-base">수정일</th>
+                                    <tr>
+                                        <th class="w-1/6">환경</th>
+                                        <th class="w-1/4">사용자</th>
+                                        <th class="w-1/3">사용여부</th>
+                                        <th class="w-1/4">수정일</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {#each service.environments as env}
                                         {@const key = getServerKey(service.service, env.name)}
                                         {@const status = serverStatus[key] || { inUse: false, assignedTo: '', updatedAt: null }}
-                                        <tr class="{status.inUse ? 'bg-success/10 hover:bg-success/20' : 'hover:bg-base-200'} transition-colors duration-200">
-                                            <td class="font-bold text-base">
+                                        <tr>
+                                            <td class="font-semibold">
                                                 {#if env.url}
                                                     <a
                                                         href={env.url}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        class="link link-primary text-lg hover:text-primary-focus"
+                                                        class="link"
                                                     >
-                                                        🔗 {env.name}
+                                                        {env.name}
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            class="inline h-4 w-4"
+                                                            fill="none"
+                                                            viewBox="0 0 24 24"
+                                                            stroke="currentColor"
+                                                        >
+                                                            <path
+                                                                stroke-linecap="round"
+                                                                stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                                            />
+                                                        </svg>
                                                     </a>
                                                 {:else}
-                                                    <span class="text-lg">📦 {env.name}</span>
+                                                    {env.name}
                                                 {/if}
                                             </td>
                                             <td>
                                                 <select
-                                                    class="select select-bordered w-full font-semibold {status.assignedTo ? 'select-success' : ''}"
+                                                    class="select select-bordered w-full max-w-xs {status.assignedTo ? 'select-primary' : ''}"
                                                     value={status.assignedTo}
                                                     on:change={(e) => updateAssignedTo(service.service, env.name, e.target.value)}
                                                 >
@@ -258,34 +266,27 @@
                                                 </select>
                                             </td>
                                             <td>
-                                                <div class="flex items-center gap-3">
-                                                    <input
-                                                        type="checkbox"
-                                                        class="toggle toggle-success toggle-lg"
-                                                        checked={status.inUse}
-                                                        on:click={(e) => toggleInUse(service.service, env.name, e)}
-                                                    />
-                                                    <div class="flex items-center gap-2">
-                                                        {#if status.inUse}
-																													사용중
-                                                        {:else}
-                                                          사용가능
-                                                        {/if}
-                                                    </div>
-                                                </div>
+                                                <input
+                                                    type="checkbox"
+                                                    class="toggle toggle-primary"
+                                                    checked={status.inUse}
+                                                    on:click={(e) => toggleInUse(service.service, env.name, e)}
+                                                />
+                                                <span class="ml-2 {status.inUse ? 'text-primary font-semibold' : 'text-base-content/50'}">
+                                                    {status.inUse ? '사용중' : '사용가능'}
+                                                </span>
                                             </td>
-                                            <td class="text-sm font-medium">
+                                            <td class="text-sm text-base-content/70">
                                                 {#if status.updatedAt}
-                                                    <div class="flex items-center gap-1 text-base-content/80">
-                                                        {new Date(status.updatedAt).toLocaleString('ko-KR', {
-                                                            month: '2-digit', 
-                                                            day: '2-digit', 
-                                                            hour: '2-digit', 
-                                                            minute: '2-digit' 
-                                                        })}
-                                                    </div>
+                                                    {new Date(status.updatedAt).toLocaleString('ko-KR', { 
+                                                        year: 'numeric', 
+                                                        month: '2-digit', 
+                                                        day: '2-digit', 
+                                                        hour: '2-digit', 
+                                                        minute: '2-digit' 
+                                                    })}
                                                 {:else}
-                                                    <span class="text-base-content/40">-</span>
+                                                    -
                                                 {/if}
                                             </td>
                                         </tr>
@@ -312,19 +313,5 @@
 <style>
     .table th {
         background-color: hsl(var(--b3));
-        font-weight: 700;
-    }
-    
-    .shadow-3xl {
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    }
-    
-    .badge-lg {
-        padding: 0.75rem 1rem;
-        font-size: 0.95rem;
-    }
-    
-    .toggle-lg {
-        transform: scale(1.3);
     }
 </style>
