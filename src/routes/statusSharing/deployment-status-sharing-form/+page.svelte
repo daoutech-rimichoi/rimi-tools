@@ -11,6 +11,19 @@
     const scenario = createSupabaseStore('deployment_scenario', '');
     let title = '';
     let isSaving = false;
+    let toastMessage = '';
+    let toastType = ''; // 'success' or 'error'
+    let showToast = false;
+
+    // Toast 표시 함수
+    function showToastMessage(message, type = 'success') {
+        toastMessage = message;
+        toastType = type;
+        showToast = true;
+        setTimeout(() => {
+            showToast = false;
+        }, 3000);
+    }
 
     // 저장 함수
     async function saveAll() {
@@ -22,9 +35,9 @@
                 redmine.save(),
                 scenario.save()
             ]);
-            alert('저장되었습니다!');
+            showToastMessage('저장되었습니다!', 'success');
         } catch (err) {
-            alert('저장 중 오류가 발생했습니다.');
+            showToastMessage('저장 중 오류가 발생했습니다.', 'error');
             console.error(err);
         } finally {
             isSaving = false;
@@ -167,4 +180,13 @@
             </div>
         </div>
     </div>
+
+    <!-- Toast Notification -->
+    {#if showToast}
+        <div class="toast toast-top toast-end">
+            <div class="alert {toastType === 'success' ? 'alert-success' : 'alert-error'}">
+                <span>{toastMessage}</span>
+            </div>
+        </div>
+    {/if}
 </div>

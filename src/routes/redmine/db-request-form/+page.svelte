@@ -2,6 +2,7 @@
     import HtmlPreviewModal from '$lib/components/HtmlPreviewModal.svelte';
     import {copyToClipboard} from '$lib/utils/clipboard.js';
     import {SvelteDate} from 'svelte/reactivity';
+    import { USER_NAMES } from '$lib/config/users.js';
 
     // Function to get today's date at 18:00 in YYYY-MM-DDTHH:mm format
     function getDefaultDateTime() {
@@ -33,7 +34,7 @@
     let backup = '';
     let deploymentDateTime = getDefaultDateTime();
 
-    const assignees = ['최경림', '김준혁', '김지웅', '전하라', '오용상', '배윤희', '한수찬'];
+    const assignees = USER_NAMES;
     
     const environmentOptions = [
 				{value: 'custom', label: '직접입력'},

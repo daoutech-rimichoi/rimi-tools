@@ -8,13 +8,14 @@
         {
             category: '현황판',
             items: [
-                {name: '개발장비 사용 현황', path: '/dev-server-status'},
+                {name: '개발장비 사용 현황', path: '/statusSharing/devServer'},
+                {name: '검수장비 사용 현황', path: '/statusSharing/stgServer'},
             ]
         },
         {
             category: '문장완성',
             items: [
-                {name: '배포 현황 공유 양식', path: '/deployment-status-sharing-form'},
+                {name: '배포 현황 공유 양식', path: '/statusSharing/deployment-status-sharing-form'},
             ]
         },
         {

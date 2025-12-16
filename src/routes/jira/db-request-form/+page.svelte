@@ -1,4 +1,6 @@
 <script>
+	import { USER_NAMES } from '$lib/config/users.js';
+
 	// Function to get today's date at 18:00 in YYYY-MM-DDTHH:mm format
 	function getDefaultDateTime() {
 		const now = new Date();
@@ -20,7 +22,7 @@
 	let backup = '';
 	let deploymentDateTime = getDefaultDateTime();
 
-	const assignees = ['최경림', '김준혁', '김지웅', '전하라', '오용상', '배윤희', '한수찬'];
+	const assignees = USER_NAMES;
 
 	// Formatting logic
 	$: output = (() => {

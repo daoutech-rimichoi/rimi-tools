@@ -4,6 +4,7 @@
     import {SvelteDate} from 'svelte/reactivity';
     import HtmlPreviewModal from '$lib/components/HtmlPreviewModal.svelte';
     import {copyToClipboard} from '$lib/utils/clipboard.js';
+    import { USER_NAMES } from '$lib/config/users.js';
 
     // --- State Variables using Writable Store ---
     const developer = writable('최경림');
@@ -12,7 +13,7 @@
     let showPreview = false;
 
     // --- Options for Selects and Checkboxes ---
-    const developers = ['최경림', '김준혁', '김지웅', '전하라', '요용상', '배윤희', '한수찬'];
+    const developers = USER_NAMES;
     const workTargets = [
         {
             code: 'kapi',

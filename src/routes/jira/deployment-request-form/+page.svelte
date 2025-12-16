@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
 	import { SvelteDate } from 'svelte/reactivity';
+	import { USER_NAMES } from '$lib/config/users.js';
 
 	// --- State Variables using Writable Store ---
 	const service = writable('bizsales');
@@ -26,7 +27,7 @@
 		{ value: 'deploy', label: '재기동' },
 		{ value: 'filetransfer', label: '파일이동' }
 	];
-	const developers = ['최경림', '김준혁', '김지웅', '전하라', '오용상', '배윤희', '한수찬'];
+	const developers = USER_NAMES;
 
 	// --- Process Options based on Service and Deployment Type ---
 	const processOptions = {

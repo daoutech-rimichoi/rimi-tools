@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
 	import { SvelteDate } from 'svelte/reactivity';
+	import { USER_NAMES } from '$lib/config/users.js';
 
 	// --- State Variables using Writable Store ---
 	const developer = writable('최경림');
@@ -11,7 +12,7 @@
 	let copiedBody = false;
 
 	// --- Options for Selects and Checkboxes ---
-	const developers = ['최경림', '김준혁', '김지웅', '전하라', '요용상', '배윤희', '한수찬'];
+	const developers = USER_NAMES;
 	const workTargets = [
 		{ code: 'kapi', name: 'KAPI', text: '| kapi | 27.102.215.47 | 80,443 | 8091,8447 | stella01, stella02 |' },
 		{ code: 'rapi', name: 'RAPI', text: '| rapi | 115.71.53.22 | 80,443 | 8092,8448 | stella01, stella02 |' },
