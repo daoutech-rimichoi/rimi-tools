@@ -5,7 +5,7 @@ exports.handler = async (event) => {
   const bodyParams = new URLSearchParams(event.body);
   const longUrl = bodyParams.get('url');
 
-  const targetUrl = 'https://cleanuri.com/api/v1/shorten';
+  const targetUrl = 'https://www.buly.kr/api/shoturl.siso';
 
   try {
     const response = await fetch(targetUrl, {
@@ -14,7 +14,10 @@ exports.handler = async (event) => {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        url: longUrl,
+        // url: longUrl,
+        org_url: longUrl,
+        customer_id: 'berryzed',
+        partner_api_id: '136C8F3B1452BF8CC8536931982FD993',
       }),
     });
 
@@ -26,7 +29,7 @@ exports.handler = async (event) => {
     }
 
     const responseBody = {
-      result_url: data.result_url
+      result_url: data.url
     };
 
     return {
