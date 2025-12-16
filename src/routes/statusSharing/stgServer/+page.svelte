@@ -144,6 +144,8 @@
         if (!serverStatus[key]) {
             serverStatus[key] = { inUse: false, assignedTo: '', updatedAt: null };
         }
+        
+        const previousAssignedTo = serverStatus[key].assignedTo;
         serverStatus[key].assignedTo = user;
         
         // 사용자 변경 시 사용여부 자동으로 false로 변경
@@ -152,6 +154,11 @@
         }
         
         serverStatus = { ...serverStatus };
+        
+        // "사용자 선택" (빈 값)으로 변경한 경우에만 DB 저장
+        if (user === '' && previousAssignedTo !== '') {
+            await saveToDb(serviceName, envName);
+        }
     }
 
     async function saveToDb(serviceName, envName) {
@@ -192,9 +199,10 @@
     }
 </script>
 
-<div class="container mx-auto p-4">
-    <div class="mb-6">
-        <h1 class="text-3xl font-bold">검수장비 현황판</h1>
+<div class="container mx-auto p-6">
+    <div class="mb-8 text-center bg-gradient-to-r from-green-500 to-emerald-600 text-white py-8 rounded-2xl shadow-2xl">
+        <h1 class="text-4xl font-bold mb-2">🧨 검수장비 현황판 🧨</h1>
+        <p class="text-lg opacity-90">검수장비는 항시 실발송 주의!!</p>
     </div>
 
     {#if isLoading}
@@ -204,58 +212,43 @@
     {:else}
         <div class="space-y-6">
             {#each servers as service, index}
-                {#if index > 0}
-                    <div class="divider"></div>
-                {/if}
-                <div class="card bg-base-100 shadow-xl">
+                <div class="card bg-base-100 shadow-2xl border-2 border-base-300 hover:shadow-3xl transition-all duration-300">
                     <div class="card-body">
-                        <h2 class="card-title text-2xl">{service.service}</h2>
+                        <h2 class="card-title text-2xl mb-4 pb-2 border-b-2 border-success">
+                            <span class="badge badge-success badge-lg mr-2">{service.service}</span>
+                        </h2>
                         <div class="overflow-x-auto">
-                            <table class="table">
+                            <table class="table table-zebra">
                                 <thead>
-                                    <tr>
-                                        <th class="w-1/6">환경</th>
-                                        <th class="w-1/4">사용자</th>
-                                        <th class="w-1/3">사용여부</th>
-                                        <th class="w-1/4">수정일</th>
+                                    <tr class="bg-base-300">
+                                        <th class="w-1/6 text-base">환경</th>
+                                        <th class="w-1/4 text-base">사용자</th>
+                                        <th class="w-1/3 text-base">사용여부</th>
+                                        <th class="w-1/4 text-base">수정일</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {#each service.environments as env}
                                         {@const key = getServerKey(service.service, env.name)}
                                         {@const status = serverStatus[key] || { inUse: false, assignedTo: '', updatedAt: null }}
-                                        <tr>
-                                            <td class="font-semibold">
+                                        <tr class="{status.inUse ? 'bg-error/10 hover:bg-error/20' : 'hover:bg-base-200'} transition-colors duration-200">
+                                            <td class="font-bold text-base">
                                                 {#if env.url}
                                                     <a
                                                         href={env.url}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        class="link link-primary"
+                                                        class="link link-success text-lg hover:text-success-focus"
                                                     >
-                                                        {env.name}
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            class="inline h-4 w-4"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            stroke="currentColor"
-                                                        >
-                                                            <path
-                                                                stroke-linecap="round"
-                                                                stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                                                            />
-                                                        </svg>
+                                                        🔗 {env.name}
                                                     </a>
                                                 {:else}
-                                                    {env.name}
+                                                    <span class="text-lg">📦 {env.name}</span>
                                                 {/if}
                                             </td>
                                             <td>
                                                 <select
-                                                    class="select select-bordered w-full max-w-xs"
+                                                    class="select select-bordered w-full font-semibold {status.assignedTo ? 'select-error' : ''}"
                                                     value={status.assignedTo}
                                                     on:change={(e) => updateAssignedTo(service.service, env.name, e.target.value)}
                                                 >
@@ -266,27 +259,34 @@
                                                 </select>
                                             </td>
                                             <td>
-                                                <input
-                                                    type="checkbox"
-                                                    class="toggle toggle-success"
-                                                    checked={status.inUse}
-                                                    on:click={(e) => toggleInUse(service.service, env.name, e)}
-                                                />
-                                                <span class="ml-2 {status.inUse ? 'text-success font-semibold' : 'text-base-content/50'}">
-                                                    {status.inUse ? '사용중' : '사용가능'}
-                                                </span>
+                                                <div class="flex items-center gap-3">
+                                                    <input
+                                                        type="checkbox"
+                                                        class="toggle toggle-error toggle-lg"
+                                                        checked={status.inUse}
+                                                        on:click={(e) => toggleInUse(service.service, env.name, e)}
+                                                    />
+                                                    <div class="flex items-center gap-2">
+                                                        {#if status.inUse}
+																													사용중
+                                                        {:else}
+																													사용가능
+                                                        {/if}
+                                                    </div>
+                                                </div>
                                             </td>
-                                            <td class="text-sm text-base-content/70">
+                                            <td class="text-sm font-medium">
                                                 {#if status.updatedAt}
-                                                    {new Date(status.updatedAt).toLocaleString('ko-KR', { 
-                                                        year: 'numeric', 
-                                                        month: '2-digit', 
-                                                        day: '2-digit', 
-                                                        hour: '2-digit', 
-                                                        minute: '2-digit' 
-                                                    })}
+                                                    <div class="flex items-center gap-1 text-base-content/80">
+                                                        {new Date(status.updatedAt).toLocaleString('ko-KR', {
+                                                            month: '2-digit', 
+                                                            day: '2-digit', 
+                                                            hour: '2-digit', 
+                                                            minute: '2-digit' 
+                                                        })}
+                                                    </div>
                                                 {:else}
-                                                    -
+                                                    <span class="text-base-content/40">-</span>
                                                 {/if}
                                             </td>
                                         </tr>
@@ -313,5 +313,32 @@
 <style>
     .table th {
         background-color: hsl(var(--b3));
+        font-weight: 700;
+    }
+    
+    .shadow-3xl {
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+    
+    .badge-lg {
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+    }
+    
+    .toggle-lg {
+        transform: scale(1.3);
+    }
+    
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.7;
+        }
+    }
+    
+    .animate-pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
 </style>
