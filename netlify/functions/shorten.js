@@ -12,6 +12,7 @@ exports.handler = async (event) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-api-key': '6e979f0d-52a5-44f3-b615-c3043035f889',
       },
       body: JSON.stringify({url: longUrl}),
     });
