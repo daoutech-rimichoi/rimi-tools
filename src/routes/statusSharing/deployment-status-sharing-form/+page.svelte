@@ -1,8 +1,9 @@
 <script>
-    import {onMount} from 'svelte';
+    import {onMount, onDestroy} from 'svelte';
     import {SvelteDate} from 'svelte/reactivity';
     import {copyToClipboard} from '$lib/utils/clipboard.js';
     import {createSupabaseStore} from '$lib/stores/supabaseStore.js';
+    import {createPresenceStore} from '$lib/stores/presenceStore.js';
 
     // State variables for textareas using Supabase store (공유 데이터)
     const approved = createSupabaseStore('deployment_approved', '');
@@ -14,6 +15,10 @@
     let toastMessage = '';
     let toastType = ''; // 'success' or 'error'
     let showToast = false;
+
+    // Presence tracking for real-time collaboration
+    const presence = createPresenceStore('deployment-status-sharing-form');
+    const {onlineUsers, editingUsers, setEditing, clearEditing} = presence;
 
     // Toast 표시 함수
     function showToastMessage(message, type = 'success') {
@@ -59,7 +64,34 @@
 
     onMount(() => {
         updateTitle();
+        presence.join();
     });
+
+    onDestroy(() => {
+        presence.leave();
+    });
+
+    // Field name mapping for display
+    const fieldNames = {
+        approved: '승인 완료',
+        pending: '승인 대기',
+        redmine: '배포 요청 Redmine',
+        scenario: '비고'
+    };
+
+    // Reactive editing indicators for each field
+    $: approvedEditing = $editingUsers['approved'];
+    $: pendingEditing = $editingUsers['pending'];
+    $: redmineEditing = $editingUsers['redmine'];
+    $: scenarioEditing = $editingUsers['scenario'];
+
+    // Helper to get editing indicator for a field
+    function getEditingIndicator(editors) {
+        if (editors && editors.length > 0) {
+            return `${editors.length}명이 작성 중...`;
+        }
+        return null;
+    }
 
     // Formatting logic
     function formatToList(text, prefix = '  - ') {
@@ -99,7 +131,15 @@
 </script>
 
 <div class="container mx-auto p-4">
-    <h1 class="mb-4 text-2xl font-bold">배포 현황 공유 양식</h1>
+    <div class="mb-4 flex items-center justify-between">
+        <h1 class="text-2xl font-bold">배포 현황 공유 양식</h1>
+        {#if $onlineUsers.length > 0}
+            <div class="badge badge-info gap-1">
+                <span class="inline-block h-2 w-2 rounded-full bg-green-400 animate-pulse"></span>
+                {$onlineUsers.length}명 접속 중
+            </div>
+        {/if}
+    </div>
 
     <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
         <!-- Input Section -->
@@ -114,49 +154,73 @@
                 <div class="form-control w-full">
                     <label for="approved" class="label">
                         <span class="label-text">■ 승인 완료 (한 줄에 하나씩) {approvedCount > 0 ? `- ${approvedCount}건` : ''}</span>
+                        {#if getEditingIndicator(approvedEditing)}
+                            <span class="label-text-alt text-warning animate-pulse">{getEditingIndicator(approvedEditing)}</span>
+                        {/if}
                     </label>
                     <textarea
                             id="approved"
                             bind:value={$approved}
                             rows="5"
                             class="textarea-bordered textarea w-full"
+                            class:textarea-warning={approvedEditing && approvedEditing.length > 0}
                             placeholder="[비즈뿌리오] 카카오 브랜드 메시지 스펙변경_이미지형 (NBIZPPURIO-3097)"
+                            on:focus={() => setEditing('approved')}
+                            on:blur={() => clearEditing('approved')}
                     ></textarea>
                 </div>
                 <div class="form-control w-full">
                     <label for="pending" class="label">
                         <span class="label-text">■ 승인 대기 (한 줄에 하나씩) {pendingCount > 0 ? `- ${pendingCount}건` : ''}</span>
+                        {#if getEditingIndicator(pendingEditing)}
+                            <span class="label-text-alt text-warning animate-pulse">{getEditingIndicator(pendingEditing)}</span>
+                        {/if}
                     </label>
                     <textarea
                             id="pending"
                             bind:value={$pending}
                             rows="5"
                             class="textarea-bordered textarea w-full"
+                            class:textarea-warning={pendingEditing && pendingEditing.length > 0}
                             placeholder="[비즈뿌리오] 그룹 태그 관리 API 개발 (NBIZPPURIO-3112)"
+                            on:focus={() => setEditing('pending')}
+                            on:blur={() => clearEditing('pending')}
                     ></textarea>
                 </div>
                 <div class="form-control w-full">
                     <label for="redmine" class="label">
                         <span class="label-text">※ 배포 요청 Redmine (한 줄에 하나씩)</span>
+                        {#if getEditingIndicator(redmineEditing)}
+                            <span class="label-text-alt text-warning animate-pulse">{getEditingIndicator(redmineEditing)}</span>
+                        {/if}
                     </label>
                     <textarea
                             id="redmine"
                             bind:value={$redmine}
                             rows="5"
                             class="textarea-bordered textarea w-full"
+                            class:textarea-warning={redmineEditing && redmineEditing.length > 0}
                             placeholder="[대기] 비즈뿌리오 웹/배치 (137)"
+                            on:focus={() => setEditing('redmine')}
+                            on:blur={() => clearEditing('redmine')}
                     ></textarea>
                 </div>
                 <div class="form-control w-full">
                     <label for="scenario" class="label">
                         <span class="label-text">※ 비고 (한 줄에 하나씩)</span>
+                        {#if getEditingIndicator(scenarioEditing)}
+                            <span class="label-text-alt text-warning animate-pulse">{getEditingIndicator(scenarioEditing)}</span>
+                        {/if}
                     </label>
                     <textarea
                             id="scenario"
                             bind:value={$scenario}
                             rows="5"
                             class="textarea-bordered textarea w-full"
+                            class:textarea-warning={scenarioEditing && scenarioEditing.length > 0}
                             placeholder="[완료] 운영작업시나리오"
+                            on:focus={() => setEditing('scenario')}
+                            on:blur={() => clearEditing('scenario')}
                     ></textarea>
                 </div>
             </div>
