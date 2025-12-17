@@ -5,31 +5,26 @@ exports.handler = async (event) => {
   const bodyParams = new URLSearchParams(event.body);
   const longUrl = bodyParams.get('url');
 
-  const targetUrl = 'https://www.buly.kr/api/shoturl.siso';
+  const targetUrl = 'https://api.lrl.kr/v6/short';
 
   try {
     const response = await fetch(targetUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
       },
-      body: new URLSearchParams({
-        // url: longUrl,
-        org_url: longUrl,
-        customer_id: 'berryzed',
-        partner_api_id: '136C8F3B1452BF8CC8536931982FD993',
-      }),
+      body: JSON.stringify({url: longUrl}),
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      // cleanuri가 에러 메시지를 보내면 그대로 전달
-      throw new Error(data.error || 'API 요청 실패');
+      // 에러 메시지를 보내면 그대로 전달
+      throw new Error(data.message || 'API 요청 실패');
     }
 
     const responseBody = {
-      result_url: data.url
+      result_url: data.result
     };
 
     return {

@@ -21,7 +21,7 @@
     let isShortening = false;
     $: canShortenUrl =
         tcLink.startsWith(
-            'https://daoucokr.sharepoint.com/:x:/r/sites/syscore/_layouts/15/Doc.aspx?sourcedoc='
+            'https://daoucokr.sharepoint.com/:x:/'
         ) && !isShortening;
 
     // --- Logic for "개발 승인 요청" ---
