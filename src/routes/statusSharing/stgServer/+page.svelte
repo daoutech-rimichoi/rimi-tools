@@ -1,5 +1,5 @@
 <script>
-    import { onMount } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import { supabase } from '$lib/supabaseClient.js';
     import { USER_NAMES } from '$lib/config/users.js';
 
@@ -11,6 +11,9 @@
     let toastMessage = '';
     let showToast = false;
     let toastType = 'error'; // 'error' or 'success'
+    let showRefreshAlert = false;
+    let subscription = null;
+    let lastSavedAt = null;
 
     // Toast 표시 함수
     function showToastMessage(message, type = 'error') {
@@ -22,8 +25,50 @@
         }, 3000);
     }
 
+    // 새로고침 알림 표시 함수
+    function showRefreshNotification() {
+        showRefreshAlert = true;
+    }
+
+    // 새로고침 실행 함수
+    function handleRefresh() {
+        showRefreshAlert = false;
+        loadServerStatus();
+    }
+
+    // 실시간 구독 설정
+    function setupRealtimeSubscription() {
+        subscription = supabase
+            .channel('server_status_stg_changes')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'server_status',
+                    filter: 'env_type=eq.stg'
+                },
+                (payload) => {
+                    console.log('DB 변경 감지:', payload);
+                    // 본인이 저장한 경우 알림 무시 (2초 이내)
+                    if (lastSavedAt && Date.now() - lastSavedAt < 2000) {
+                        return;
+                    }
+                    showRefreshNotification();
+                }
+            )
+            .subscribe();
+    }
+
     onMount(async () => {
         await loadServerStatus();
+        setupRealtimeSubscription();
+    });
+
+    onDestroy(() => {
+        if (subscription) {
+            supabase.removeChannel(subscription);
+        }
     });
 
     async function loadServerStatus() {
@@ -128,6 +173,7 @@
     }
 
     async function saveToDb(serviceName, envName) {
+        lastSavedAt = Date.now();
         try {
             const key = getServerKey(serviceName, envName);
             const status = serverStatus[key] || { inUse: false, assignedTo: '', updatedAt: null };
@@ -169,7 +215,6 @@
 	<div class="mb-8 text-center bg-gradient-to-r from-green-500 to-emerald-600 text-white py-8 rounded-2xl shadow-2xl">
 		<h1 class="text-4xl font-bold mb-2">🧨 검수장비 현황판 🧨</h1>
 		<p class="text-lg opacity-90">검수장비는 항시 실발송 주의!!</p>
-		<p class="text-lg opacity-90">👊 사용 전 꼭 새로고침 👊</p>
 	</div>
 
     {#if isLoading}
@@ -280,6 +325,22 @@
         <div class="toast toast-top toast-end z-50">
             <div class="alert alert-{toastType}">
                 <span>{toastMessage}</span>
+            </div>
+        </div>
+    {/if}
+
+    <!-- 새로고침 알림 -->
+    {#if showRefreshAlert}
+        <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div class="alert alert-warning max-w-md shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                    <h3 class="font-bold">데이터가 변경되었습니다!</h3>
+                    <div class="text-sm">다른 사용자가 상태를 변경했습니다.<br/>새로고침해주세요.</div>
+                </div>
+                <button class="btn btn-primary btn-sm" on:click={handleRefresh}>새로고침</button>
             </div>
         </div>
     {/if}
