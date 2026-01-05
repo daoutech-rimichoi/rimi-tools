@@ -16,6 +16,7 @@
             category: '문장완성',
             items: [
                 {name: '배포 현황 공유 양식', path: '/statusSharing/deployment-status-sharing-form'},
+                {name: '배포 현황 공유 양식2', path: '/statusSharing/deployment-status-sharing-form-v2'},
             ]
         },
         {
@@ -94,7 +95,7 @@
                     <li>
                         <a
                                 href={menu.path}
-                                class:menu-active={page.url.pathname.startsWith(menu.path)}
+                                class:menu-active={page.url.pathname === menu.path}
                                 target={group.type === 'link' ? '_blank' : null}
                                 rel={group.type === 'link' ? 'noopener noreferrer' : null}
                                 data-sveltekit-reload>{menu.name}</a>
