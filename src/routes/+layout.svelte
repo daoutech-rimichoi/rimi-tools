@@ -16,7 +16,6 @@
             category: '문장완성',
             items: [
                 {name: '배포 현황 공유 양식', path: '/statusSharing/deployment-status-sharing-form'},
-                {name: '배포 현황 공유 양식2', path: '/statusSharing/deployment-status-sharing-form-v2'},
             ]
         },
         {
