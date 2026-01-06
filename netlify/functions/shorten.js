@@ -1,6 +1,4 @@
-const fetch = require('node-fetch');
-
-exports.handler = async (event) => {
+export async function handler(event) {
   // Netlify는 POST 요청 본문을 문자열로 전달합니다.
   const bodyParams = new URLSearchParams(event.body);
   const longUrl = bodyParams.get('url');
@@ -41,4 +39,4 @@ exports.handler = async (event) => {
       body: JSON.stringify({ error: error.message }),
     };
   }
-};
+}

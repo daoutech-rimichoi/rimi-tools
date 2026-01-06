@@ -6,14 +6,6 @@ import { sveltekit } from '@sveltejs/kit/vite';
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit(), devtoolsJson()],
 	server: {
-		proxy: {
-			'/.netlify/functions/shorten': {
-				target: 'https://cleanuri.com',
-				changeOrigin: true,
-				rewrite: () => '/api/v1/shorten',
-				secure: false,
-			},
-		}
 	},
 	test: {
 		expect: { requireAssertions: true },
