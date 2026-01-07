@@ -202,6 +202,42 @@
         }
     }
 
+    // 리셋 함수
+    async function resetAll() {
+        if (confirm('잘못누른게 아니죠?')) {
+            isSaving = true;
+            try {
+                // 모든 데이터를 초기 상태로 리셋
+                approvedRows = [{id: crypto.randomUUID(), value: ''}];
+                pendingRows = [{id: crypto.randomUUID(), value: ''}];
+                redmineRows = [{id: crypto.randomUUID(), status: '대기', service: '서비스선택', customService: '', redmine: ''}];
+                scenarioRows = [{id: crypto.randomUUID(), status: '대기', type: '작업선택', customText: '', service: '서비스선택', customService: ''}];
+
+                // DB에 초기화된 데이터 저장
+                const updates = [
+                    {key: 'deployment2_approved_rows', value: JSON.stringify(approvedRows), updated_at: new Date().toISOString()},
+                    {key: 'deployment2_pending_rows', value: JSON.stringify(pendingRows), updated_at: new Date().toISOString()},
+                    {key: 'deployment2_redmine_rows', value: JSON.stringify(redmineRows), updated_at: new Date().toISOString()},
+                    {key: 'deployment2_scenario_rows', value: JSON.stringify(scenarioRows), updated_at: new Date().toISOString()}
+                ];
+
+                const {error} = await supabase
+                    .from('deployment_form_data')
+                    .upsert(updates, {onConflict: 'key'});
+
+                if (error) {
+                    throw error;
+                }
+                showToastMessage('모든 내용이 초기화되었습니다!', 'success');
+            } catch (err) {
+                showToastMessage('초기화 중 오류가 발생했습니다.', 'error');
+                console.error(err);
+            } finally {
+                isSaving = false;
+            }
+        }
+    }
+
     // 공통 행 관리 함수
     function addRow(rows, setRows) {
         setRows([...rows, {id: crypto.randomUUID(), value: ''}]);
@@ -471,7 +507,10 @@
                                 <span class="text-warning text-sm animate-pulse">{totalEditingCount}명 수정중...</span>
                             {/if}
                         </div>
-                        <div class="flex flex-col items-end gap-1">
+                        <div class="flex items-center gap-2">
+                            <button onclick={resetAll} class="btn btn-sm btn-error" disabled={isSaving}>
+                                초기화
+                            </button>
                             <button onclick={saveAll} class="btn btn-sm btn-primary" disabled={isSaving}>
                                 {isSaving ? '저장 중...' : '저장하기'}
                             </button>
