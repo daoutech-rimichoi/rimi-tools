@@ -90,8 +90,8 @@
             };
         }
         
-        // Redmine 일감 패턴: 괄호 안의 숫자 (예: (524))
-        const redmineMatch = value.match(/\((\d+)\)/);
+        // Redmine 일감 패턴: issue-숫자 (예: issue-622)
+        const redmineMatch = value.match(/issue-(\d+)/i);
         if (redmineMatch) {
             return {
                 type: 'redmine',
