@@ -526,16 +526,18 @@
                         <div class="space-y-2">
                             {#each approvedRows as row, index (row.id)}
                                 <div
-                                    role="button"
-                                    tabindex="0"
-                                    class="flex gap-1 items-center cursor-move"
-                                    draggable="true"
-                                    ondragstart={(e) => handleDragStart(e, index, 'approved')}
-                                    ondragend={handleDragEnd}
+                                    class="flex gap-1 items-center"
                                     ondragover={handleDragOver}
                                     ondrop={(e) => handleDrop(e, index, 'approved')}
                                 >
-                                    <span class="text-base-content/40 select-none">⠿</span>
+                                    <span
+                                        role="button"
+                                        tabindex="0"
+                                        class="text-base-content/40 select-none cursor-move"
+                                        draggable="true"
+                                        ondragstart={(e) => handleDragStart(e, index, 'approved')}
+                                        ondragend={handleDragEnd}
+                                    >⠿</span>
                                     <button
                                         onclick={() => moveToPending(row)}
                                         onfocus={() => setEditing('approved')}
@@ -616,16 +618,18 @@
                         <div class="space-y-2">
                             {#each pendingRows as row, index (row.id)}
                                 <div
-                                    role="button"
-                                    tabindex="0"
-                                    class="flex gap-1 items-center cursor-move"
-                                    draggable="true"
-                                    ondragstart={(e) => handleDragStart(e, index, 'pending')}
-                                    ondragend={handleDragEnd}
+                                    class="flex gap-1 items-center"
                                     ondragover={handleDragOver}
                                     ondrop={(e) => handleDrop(e, index, 'pending')}
                                 >
-                                    <span class="text-base-content/40 select-none">⠿</span>
+                                    <span
+                                        role="button"
+                                        tabindex="0"
+                                        class="text-base-content/40 select-none cursor-move"
+                                        draggable="true"
+                                        ondragstart={(e) => handleDragStart(e, index, 'pending')}
+                                        ondragend={handleDragEnd}
+                                    >⠿</span>
                                     <button
                                         onclick={() => moveToApproved(row)}
                                         onfocus={() => setEditing('pending')}
@@ -706,16 +710,18 @@
                         <div class="space-y-2">
                             {#each redmineRows as row, index (row.id)}
                                 <div
-                                    role="button"
-                                    tabindex="0"
-                                    class="flex gap-1 items-center cursor-move"
-                                    draggable="true"
-                                    ondragstart={(e) => handleDragStart(e, index, 'redmine')}
-                                    ondragend={handleDragEnd}
+                                    class="flex gap-1 items-center"
                                     ondragover={handleDragOver}
                                     ondrop={(e) => handleDrop(e, index, 'redmine')}
                                 >
-                                    <span class="text-base-content/40 select-none">⠿</span>
+                                    <span
+                                        role="button"
+                                        tabindex="0"
+                                        class="text-base-content/40 select-none cursor-move"
+                                        draggable="true"
+                                        ondragstart={(e) => handleDragStart(e, index, 'redmine')}
+                                        ondragend={handleDragEnd}
+                                    >⠿</span>
                                     <button
                                         onclick={() => toggleRedmineStatus(row)}
                                         onfocus={() => setEditing('redmine')}
@@ -793,16 +799,18 @@
                         <div class="space-y-2">
                             {#each scenarioRows as row, index (row.id)}
                                 <div
-                                    role="button"
-                                    tabindex="0"
-                                    class="flex gap-1 items-center cursor-move"
-                                    draggable="true"
-                                    ondragstart={(e) => handleDragStart(e, index, 'scenario')}
-                                    ondragend={handleDragEnd}
+                                    class="flex gap-1 items-center"
                                     ondragover={handleDragOver}
                                     ondrop={(e) => handleDrop(e, index, 'scenario')}
                                 >
-                                    <span class="text-base-content/40 select-none">⠿</span>
+                                    <span
+                                        role="button"
+                                        tabindex="0"
+                                        class="text-base-content/40 select-none cursor-move"
+                                        draggable="true"
+                                        ondragstart={(e) => handleDragStart(e, index, 'scenario')}
+                                        ondragend={handleDragEnd}
+                                    >⠿</span>
                                     <button
                                         onclick={() => toggleScenarioStatus(row)}
                                         onfocus={() => setEditing('scenario')}
