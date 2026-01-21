@@ -19,16 +19,6 @@
             ]
         },
         {
-            category: 'JIRA',
-            desc: '입력 시 "텍스트" 모드에서 붙여넣으세염',
-            items: [
-                {name: 'L4 작업 요청 양식', path: '/jira/l4-request-form'},
-                {name: '배포 요청 양식', path: '/jira/deployment-request-form'},
-                {name: '코멘트 양식', path: '/jira/comment-form'},
-                {name: 'DB 업무 요청 양식', path: '/jira/db-request-form'},
-            ]
-        },
-        {
             category: 'REDMINE',
             desc: '입력 시 편집모드에서 "소스"선택 후 붙여넣으세염',
             items: [
