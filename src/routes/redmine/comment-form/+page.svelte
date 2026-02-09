@@ -85,7 +85,6 @@ ${formattedDetailedEffort}</p>
     $: formattedEndDate = endDate.replace(/-/g, '/');
     $: resultText2 = `<p>- PR<br />\n${prLines}</p>
 <p>- TC : ${tcLink}</p>
-<br />
 <p>개발 완료 승인 요청 드립니다.</p>
 <blockquote>
 <p>- 종료일: ${formattedEndDate}</p>

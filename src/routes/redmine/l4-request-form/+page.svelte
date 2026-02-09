@@ -102,16 +102,11 @@
             : '[서비스명] L4 작업 요청';
     $: outputBody = `<p>안녕하세요. 시스템코어개발팀 ${$developer}입니다.<br />
 아래 내용으로 작업 요청 드립니다.</p>
-
 <p>■ 작업 내용<br />
 &nbsp;- ${workContent}</p>
-
 <p>■ 작업 대상</p>
-
 ${formatToHtmlTable($selectedTargets)}
-
 <p>■ 작업 시나리오</p>
-
 <ol>
 <li>아파치 설정 작업 (1~N 전부)
 <blockquote>cd /home/service/apache/\\{서비스명}/conf/<br />
@@ -130,10 +125,8 @@ cp worker.properties.org ./worker.properties<br />
 </blockquote>
 </li>
 </ol>
-
 <p>■ 작업 일시<br />
 &nbsp;- ${formattedWorkTime}</p>
-
 <p>감사합니다.</p>`;
 </script>
 

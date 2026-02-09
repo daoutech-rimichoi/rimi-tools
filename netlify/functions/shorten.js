@@ -3,27 +3,29 @@ export async function handler(event) {
   const bodyParams = new URLSearchParams(event.body);
   const longUrl = bodyParams.get('url');
 
-  const targetUrl = 'https://api.lrl.kr/v6/short';
+  const targetUrl = 'https://rul.kr/create';
 
   try {
     const response = await fetch(targetUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': '6e979f0d-52a5-44f3-b615-c3043035f889',
       },
-      body: JSON.stringify({url: longUrl}),
+      body: JSON.stringify({
+        url: longUrl,
+        type: 'public'
+      }),
     });
 
     const data = await response.json();
 
     if (!response.ok) {
       // 에러 메시지를 보내면 그대로 전달
-      throw new Error(data.message || 'API 요청 실패');
+      throw new Error(data.error || 'API 요청 실패');
     }
 
     const responseBody = {
-      result_url: data.result
+      result_url: data.short_url
     };
 
     return {
