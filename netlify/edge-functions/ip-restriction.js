@@ -1,5 +1,5 @@
 export default async (request, context) => {
-  const allowedIPs = (Netlify.env.get('ALLOWED_IPS') || '').split(',').map(ip => ip.trim()).filter(Boolean);
+  const allowedIPs = (Deno.env.get('ALLOWED_IPS') || '').split(',').map(ip => ip.trim()).filter(Boolean);
   
   if (allowedIPs.length === 0) {
     return new Response('Server Configuration Error', { status: 503 });
