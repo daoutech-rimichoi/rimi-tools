@@ -179,18 +179,18 @@
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-									<div class="form-control w-full">
-											<label for="environment" class="label">
-												<span class="label-text">환경</span>
-											</label>
-											<select id="environment" bind:value={environment} class="select-bordered select w-full">
-												{#each environmentOptions as env (env.value)}
-													<option value={env.value}>{env.label}</option>
-												{/each}
-											</select>
-										</div>
+                    <div class="form-control w-full">
+                        <label for="environment" class="label">
+                            <span class="label-text">환경</span>
+                        </label>
+                        <select id="environment" bind:value={environment} class="select-bordered select w-full">
+                            {#each environmentOptions as env (env.value)}
+                                <option value={env.value}>{env.label}</option>
+                            {/each}
+                        </select>
+                    </div>
                     <div class="form-control w-full sm:col-span-2">
-                        <label class="label">
+                        <label class="label" for={environment === 'custom' ? 'customSystem' : undefined}>
                             <span class="label-text">대상 시스템</span>
                         </label>
                         {#if environment === 'custom'}

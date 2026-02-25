@@ -122,11 +122,11 @@
                 {#each quickLinks as link}
                     <div class="dropdown dropdown-right">
                         <button tabindex="0" class="btn btn-ghost border border-base-300 w-full justify-start">{link.name}</button>
-                        <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box border border-base-300 shadow-lg z-50 w-full p-1 -ml-20">
+                        <div tabindex="0" role="menu" class="dropdown-content menu bg-base-100 rounded-box border border-base-300 shadow-lg z-50 w-full p-1 -ml-20">
                             {#each link.items as item}
-                                <li><button class="font-medium hover:bg-primary hover:text-primary-content" on:click={() => handleSubItemClick(item)}>{item.name}</button></li>
+                                <div role="menuitem"><button class="font-medium hover:bg-primary hover:text-primary-content" on:click={() => handleSubItemClick(item)}>{item.name}</button></div>
                             {/each}
-                        </ul>
+                        </div>
                     </div>
                 {/each}
             </div>

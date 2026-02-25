@@ -526,6 +526,8 @@
                         <div class="space-y-2">
                             {#each approvedRows as row, index (row.id)}
                                 <div
+                                    role="button"
+                                    tabindex="0"
                                     class="flex gap-1 items-center"
                                     ondragover={handleDragOver}
                                     ondrop={(e) => handleDrop(e, index, 'approved')}
