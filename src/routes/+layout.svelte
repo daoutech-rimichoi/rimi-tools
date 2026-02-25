@@ -124,7 +124,7 @@
                         <button tabindex="0" class="btn btn-ghost border border-base-300 w-full justify-start">{link.name}</button>
                         <div tabindex="0" role="menu" class="dropdown-content menu bg-base-100 rounded-box border border-base-300 shadow-lg z-50 w-full p-1 -ml-20">
                             {#each link.items as item}
-                                <div role="menuitem"><button class="font-medium hover:bg-primary hover:text-primary-content" on:click={() => handleSubItemClick(item)}>{item.name}</button></div>
+                                <div role="menuitem"><button class="w-full text-left font-medium hover:bg-primary hover:text-primary-content rounded px-3 py-1.5" on:click={() => handleSubItemClick(item)}>{item.name}</button></div>
                             {/each}
                         </div>
                     </div>
