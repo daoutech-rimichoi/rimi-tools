@@ -28,31 +28,57 @@
                 {name: 'DB 업무 요청 양식', path: '/redmine/db-request-form'},
             ]
         },
+    ];
+
+    const quickLinks = [
         {
-            category: '바로가기 링크',
-            type: 'link',
+            name: 'Redmine',
             items: [
-                {
-                    name: 'Redmine', path: 'https://buly.kr/FsJakS2'
-                },
-                {name: 'Jenkins - 개발', path: 'https://zrr.kr/u64YGw'},
-                {name: 'Jenkins - 검수', path: 'https://zrr.kr/DSkoA0'},
-                {
-                    name: 'SharePoint - 시코팀',
-                    path: 'https://buly.kr/2qZWA4P'
-                },
-                {
-                    name: 'SharePoint - 일일점검',
-                    path: 'https://buly.kr/AwgNHam'
-                },
-                {
-                    name: '서비스운영팀 - 주차별 배포 예정 현황',
-                    path: 'https://buly.kr/2felBGG'
-                },
+                {name: '초기화면', path: 'https://buly.kr/FsJakS2'},
+                {name: '일감', prompt: true},
+            ]
+        },
+        {
+            name: 'Jenkins',
+            items: [
+                {name: '개발', path: 'https://zrr.kr/u64YGw'},
+                {name: '검수', path: 'https://zrr.kr/DSkoA0'},
+            ]
+        },
+        {
+            name: 'SharePoint',
+            items: [
+                {name: '시코팀', path: 'https://buly.kr/2qZWA4P'},
+                {name: '일일점검', path: 'https://buly.kr/AwgNHam'},
+            ]
+        },
+        {
+            name: '배포',
+            items: [
+                {name: '주차별 배포 예정 현황', path: 'https://buly.kr/2felBGG'},
             ]
         },
     ];
 
+    function handleSubItemClick(item) {
+        if (item.prompt) {
+            issueNum = '';
+            issueDialogEl?.showModal();
+        } else {
+            window.open(item.path, '_blank');
+        }
+    }
+
+    // --- 일감 다이얼로그 ---
+    let issueNum = '';
+    let issueDialogEl;
+
+    function confirmIssue() {
+        const trimmed = String(issueNum).trim();
+        if (!trimmed) return;
+        window.open(`https://task.daou.co.kr/issues/${trimmed}`, '_blank');
+        issueDialogEl?.close();
+    }
 </script>
 
 <svelte:head>
@@ -70,10 +96,10 @@
     </div>
     <div class="drawer-side">
         <label for="my-drawer-2" aria-label="close sidebar" class="drawer-overlay"></label>
-        <ul class="menu min-h-full w-80 bg-base-200 p-4 text-base-content flex flex-col">
+        <ul class="menu min-h-full w-65 bg-base-200 p-4 text-base-content flex flex-col">
             <!-- Sidebar content here -->
             {#each menus as group (group.category)}
-                <li class="menu-title relative group cursor-default {group.type === 'link' ? 'mt-auto' : ''}">
+                <li class="menu-title relative group cursor-default">
                     <span>{group.category}</span>
                     <div class="tooltip-bubble">
                         {group.desc}
@@ -85,15 +111,46 @@
                         <a
                                 href={menu.path}
                                 class:menu-active={page.url.pathname === menu.path}
-                                target={group.type === 'link' ? '_blank' : null}
-                                rel={group.type === 'link' ? 'noopener noreferrer' : null}
                                 data-sveltekit-reload>{menu.name}</a>
                     </li>
                 {/each}
             {/each}
+
+            <!-- 바로가기 링크 -->
+            <li class="menu-title mt-auto cursor-default"><span>바로가기 링크</span></li>
+            <div class="flex flex-col gap-1 pb-2">
+                {#each quickLinks as link}
+                    <div class="dropdown dropdown-right">
+                        <button tabindex="0" class="btn btn-ghost border border-base-300 w-full justify-start">{link.name}</button>
+                        <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box border border-base-300 shadow-lg z-50 w-full p-1 -ml-20">
+                            {#each link.items as item}
+                                <li><button class="font-medium hover:bg-primary hover:text-primary-content" on:click={() => handleSubItemClick(item)}>{item.name}</button></li>
+                            {/each}
+                        </ul>
+                    </div>
+                {/each}
+            </div>
         </ul>
     </div>
 </div>
+
+<dialog bind:this={issueDialogEl} class="modal">
+    <div class="modal-box">
+        <h3 class="mb-4 font-bold text-lg">Redmine 일감 번호 입력</h3>
+        <input
+                type="number"
+                class="input input-bordered w-full"
+                placeholder="일감 번호"
+                bind:value={issueNum}
+                on:keydown={(e) => e.key === 'Enter' && confirmIssue()}
+        />
+        <div class="modal-action">
+            <button class="btn" on:click={() => issueDialogEl?.close()}>취소</button>
+            <button class="btn btn-primary" on:click={confirmIssue} disabled={!issueNum}>이동</button>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
 
 <style>
     /* 말풍선이 잘리지 않게 */

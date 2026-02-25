@@ -42,6 +42,10 @@
     }
 
     $: totalEffort = (devEffort || 0) + (testEffort || 0);
+    $: effortBreakdown = [
+        devEffort > 0 ? `개발공수(${devEffort}D)` : null,
+        testEffort > 0 ? `테스트/TC(${testEffort}D)` : null,
+    ].filter(Boolean).join(' + ');
     $: formattedDetailedEffort = detailedEffort
         .split('\n')
         .filter((line) => line.trim() !== '')
@@ -56,7 +60,7 @@
 확인 부탁 드립니다.</p>
 
 <blockquote>
-<p>■ 총 공수: ${totalEffort}D = 개발공수(${devEffort || 0}D) + 테스트/TC(${testEffort || 0}D)</p>
+<p>■ 총 공수: ${totalEffort}D = ${effortBreakdown}</p>
 <p>■ 상세 개발 공수<br />
 ${formattedDetailedEffort}</p>
 <p>■ 개발 일정<br />
