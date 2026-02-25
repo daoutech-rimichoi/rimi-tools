@@ -1,5 +1,7 @@
 # Rimi Tools
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/42b29084-d621-4545-ad51-0ede65ff9978/deploy-status)](https://app.netlify.com/projects/rimi-tools/deploys)
+
 SvelteKit 기반의 웹 애플리케이션으로, Jira 댓글, 배포 요청서 등 개발 과정에서 필요한 다양한 텍스트 생성을 자동화하여 생산성을 높이는 것을 목표로 하는 도구 모음입니다.
 
 ## ✨ 주요 기능
