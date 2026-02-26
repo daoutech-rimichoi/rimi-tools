@@ -53,10 +53,7 @@
             ]
         },
         {
-            name: '배포',
-            items: [
-                {name: '주차별 배포 예정 현황', path: 'https://buly.kr/2felBGG'},
-            ]
+						name: '서비스운영팀', path: 'http://svctech.daou.co.kr/'
         },
     ];
 
@@ -120,14 +117,18 @@
             <li class="menu-title mt-auto cursor-default"><span>바로가기 링크</span></li>
             <div class="flex flex-col gap-1 pb-2">
                 {#each quickLinks as link}
-                    <div class="dropdown dropdown-right">
-                        <button tabindex="0" class="btn btn-ghost border border-base-300 w-full justify-start">{link.name}</button>
-                        <div tabindex="0" role="menu" class="dropdown-content menu bg-base-100 rounded-box border border-base-300 shadow-lg z-50 w-full p-1 -ml-20">
-                            {#each link.items as item}
-                                <div role="menuitem"><button class="w-full text-left font-medium hover:bg-primary hover:text-primary-content rounded px-3 py-1.5" on:click={() => handleSubItemClick(item)}>{item.name}</button></div>
-                            {/each}
+                    {#if link.path}
+                        <button class="btn btn-ghost border border-base-300 w-full justify-start" on:click={() => window.open(link.path, '_blank')}>{link.name}</button>
+                    {:else}
+                        <div class="dropdown dropdown-right">
+                            <button tabindex="0" class="btn btn-ghost border border-base-300 w-full justify-start">{link.name}</button>
+                            <div tabindex="0" role="menu" class="dropdown-content menu bg-base-100 rounded-box border border-base-300 shadow-lg z-50 w-full p-1 -ml-20">
+                                {#each link.items as item}
+                                    <div role="menuitem"><button class="w-full text-left font-medium hover:bg-primary hover:text-primary-content rounded px-3 py-1.5" on:click={() => handleSubItemClick(item)}>{item.name}</button></div>
+                                {/each}
+                            </div>
                         </div>
-                    </div>
+                    {/if}
                 {/each}
             </div>
         </ul>
