@@ -8,14 +8,16 @@
         {
             category: '현황판',
             items: [
-                {name: '개발장비 사용 현황', path: '/statusSharing/devServer'},
-                {name: '검수장비 사용 현황', path: '/statusSharing/stgServer'},
+                {name: '개발장비 사용 현황', path: '/statusBoard/devServer'},
+                {name: '검수장비 사용 현황', path: '/statusBoard/stgServer'},
             ]
         },
         {
             category: '문장완성',
             items: [
-                {name: '배포 현황 공유 양식', path: '/statusSharing/deployment-status-sharing-form'},
+                {name: '배포 현황 공유 양식', path: '/sentenceCompletion/deployment-status-sharing-form'},
+                {name: '메신저 문구 양식', path: '/sentenceCompletion/messenger-form'},
+                {name: '업무 AI 명령 양식', path: '/sentenceCompletion/ai-command-form'},
             ]
         },
         {

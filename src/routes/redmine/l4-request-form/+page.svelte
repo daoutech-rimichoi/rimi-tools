@@ -131,7 +131,7 @@ cp worker.properties.org ./worker.properties<br />
 </script>
 
 <div class="container mx-auto p-4">
-    <h1 class="mb-4 text-2xl font-bold">L4 작업 요청 양식 (Redmine)</h1>
+    <h1 class="mb-4 text-2xl font-bold">L4 작업 요청 양식</h1>
 
     <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
         <!-- Input Section -->
