@@ -139,7 +139,11 @@ ${formattedDetailedEffort}</p>
 
 <svelte:window on:beforeunload={handleBeforeUnload}/>
 
-<div class="container mx-auto space-y-12 p-4">
+<div class="container mx-auto p-4">
+    <div class="mb-8 rounded-xl bg-neutral py-5 text-center shadow">
+        <h1 class="text-2xl font-bold text-neutral-content">코멘트 양식</h1>
+    </div>
+    <div class="space-y-12">
     <!-- 개발 승인 요청 -->
     <div>
         <h1 class="mb-4 text-2xl font-bold">개발 승인 요청</h1>
@@ -327,6 +331,7 @@ ${formattedDetailedEffort}</p>
                 </div>
             </div>
         </div>
+    </div>
     </div>
 </div>
 

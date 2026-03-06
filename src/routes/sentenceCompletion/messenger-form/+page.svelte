@@ -192,10 +192,14 @@
     });
 </script>
 
-<div class="container mx-auto space-y-12 p-4">
+<div class="container mx-auto p-4">
+    <div class="mb-8 rounded-xl bg-neutral py-5 text-center shadow">
+        <h1 class="text-2xl font-bold text-neutral-content">메신저 문구 양식</h1>
+    </div>
+    <div class="space-y-12">
     <!-- 동료검토 요청 -->
     <div>
-        <h1 class="mb-4 text-2xl font-bold">동료검토 요청 양식</h1>
+        <h1 class="mb-4 text-2xl font-bold">동료검토 요청</h1>
         <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
             <!-- 입력 -->
             <div class="card bg-base-100 shadow-xl">
@@ -271,7 +275,7 @@
 
     <!-- 검수 요청 -->
     <div>
-        <h1 class="mb-4 text-2xl font-bold">검수 요청 양식</h1>
+        <h1 class="mb-4 text-2xl font-bold">검수 요청</h1>
         <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
             <!-- 입력 -->
             <div class="card bg-base-100 shadow-xl">
@@ -389,5 +393,6 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 </div>

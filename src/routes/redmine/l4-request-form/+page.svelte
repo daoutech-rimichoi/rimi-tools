@@ -131,7 +131,9 @@ cp worker.properties.org ./worker.properties<br />
 </script>
 
 <div class="container mx-auto p-4">
-    <h1 class="mb-4 text-2xl font-bold">L4 작업 요청 양식</h1>
+    <div class="mb-8 rounded-xl bg-neutral py-5 text-center shadow">
+        <h1 class="text-2xl font-bold text-neutral-content">L4 작업 요청 양식</h1>
+    </div>
 
     <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
         <!-- Input Section -->

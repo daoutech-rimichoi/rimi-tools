@@ -481,15 +481,17 @@
 </script>
 
 <div class="container mx-auto p-4">
-    <div class="mb-4 flex items-center justify-between">
-        <h1 class="text-2xl font-bold">배포 현황 공유 양식</h1>
-        {#if $onlineUsers.length > 0}
+    <div class="mb-8 rounded-xl bg-neutral py-5 text-center shadow">
+        <h1 class="text-2xl font-bold text-neutral-content">배포 현황 공유 양식</h1>
+    </div>
+    {#if $onlineUsers.length > 0}
+        <div class="mb-4 flex justify-end">
             <div class="badge badge-info gap-1">
                 <span class="inline-block h-2 w-2 rounded-full bg-green-400 animate-pulse"></span>
                 {$onlineUsers.length}명 접속 중
             </div>
-        {/if}
-    </div>
+        </div>
+    {/if}
 
     {#if isLoading}
         <div class="flex justify-center items-center h-64">

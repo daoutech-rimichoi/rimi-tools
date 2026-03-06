@@ -72,10 +72,14 @@
     });
 </script>
 
-<div class="container mx-auto space-y-12 p-4">
+<div class="container mx-auto p-4">
+    <div class="mb-8 rounded-xl bg-neutral py-5 text-center shadow">
+        <h1 class="text-2xl font-bold text-neutral-content">업무 AI 명령 양식</h1>
+    </div>
+    <div class="space-y-12">
     <!-- PR 작성 요청 -->
     <div>
-        <h1 class="mb-4 text-2xl font-bold">PR 작성 요청 양식</h1>
+        <h1 class="mb-4 text-2xl font-bold">PR 작성 요청</h1>
         <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
             <div class="card bg-base-100 shadow-xl">
                 <div class="card-body">
@@ -143,7 +147,7 @@
 
     <!-- PR 리뷰 작성 요청 -->
     <div>
-        <h1 class="mb-4 text-2xl font-bold">PR 리뷰 작성 요청 양식</h1>
+        <h1 class="mb-4 text-2xl font-bold">PR 리뷰 작성 요청</h1>
         <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
             <div class="card bg-base-100 shadow-xl">
                 <div class="card-body">
@@ -207,5 +211,6 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 </div>
