@@ -128,6 +128,50 @@
         return `[검수 요청]\n아래 개발 건 검수 요청드립니다.\n\n${body}\n\n감사합니다.`;
     });
 
+    // --- 드래그앤드롭 ---
+    let draggedItem = $state(null);
+    let draggedFrom = $state(null);
+
+    function handleDragStart(e, index, listName) {
+        draggedItem = index;
+        draggedFrom = listName;
+        e.dataTransfer.effectAllowed = 'move';
+        e.target.classList.add('opacity-50');
+    }
+
+    function handleDragEnd(e) {
+        e.target.classList.remove('opacity-50');
+        draggedItem = null;
+        draggedFrom = null;
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    }
+
+    function handleDrop(e, targetIndex, listName) {
+        e.preventDefault();
+        if (draggedFrom !== listName || draggedItem === null) return;
+
+        let rows, setRows;
+        if (listName === 'peer') {
+            rows = peerItems;
+            setRows = (v) => (peerItems = v);
+        } else if (listName === 'inspect') {
+            rows = inspectItems;
+            setRows = (v) => (inspectItems = v);
+        }
+
+        const newRows = [...rows];
+        const [removed] = newRows.splice(draggedItem, 1);
+        newRows.splice(targetIndex, 0, removed);
+        setRows(newRows);
+
+        draggedItem = null;
+        draggedFrom = null;
+    }
+
     // --- localStorage 저장 ---
     let initialized = $state(false);
 
@@ -213,9 +257,21 @@
                     </div>
                     <div class="flex flex-col gap-4">
                         {#each peerItems as item, index (item.id)}
-                            <div class="rounded-box border border-base-300 p-4">
+                            <div
+                                class="rounded-box border border-base-300 p-4"
+                                ondragover={handleDragOver}
+                                ondrop={(e) => handleDrop(e, index, 'peer')}
+                            >
                                 <div class="mb-2 flex items-center justify-between">
-                                    <span class="text-sm font-semibold text-base-content/60">#{index + 1}</span>
+                                    <div class="flex items-center gap-2">
+                                        <span
+                                            class="cursor-move select-none text-base-content/40"
+                                            draggable="true"
+                                            ondragstart={(e) => handleDragStart(e, index, 'peer')}
+                                            ondragend={handleDragEnd}
+                                        >⠿</span>
+                                        <span class="text-sm font-semibold text-base-content/60">#{index + 1}</span>
+                                    </div>
                                     {#if peerItems.length > 1}
                                         <button
                                             class="btn btn-xs btn-outline btn-error"
@@ -289,9 +345,21 @@
                     </div>
                     <div class="flex flex-col gap-4">
                         {#each inspectItems as item, index (item.id)}
-                            <div class="rounded-box border border-base-300 p-4">
+                            <div
+                                class="rounded-box border border-base-300 p-4"
+                                ondragover={handleDragOver}
+                                ondrop={(e) => handleDrop(e, index, 'inspect')}
+                            >
                                 <div class="mb-2 flex items-center justify-between">
-                                    <span class="text-sm font-semibold text-base-content/60">#{index + 1}</span>
+                                    <div class="flex items-center gap-2">
+                                        <span
+                                            class="cursor-move select-none text-base-content/40"
+                                            draggable="true"
+                                            ondragstart={(e) => handleDragStart(e, index, 'inspect')}
+                                            ondragend={handleDragEnd}
+                                        >⠿</span>
+                                        <span class="text-sm font-semibold text-base-content/60">#{index + 1}</span>
+                                    </div>
                                 </div>
                                 <div class="form-control w-full">
                                     <label class="label" for="inspect-issue-{item.id}">
