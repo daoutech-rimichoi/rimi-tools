@@ -94,7 +94,7 @@
             scheduleExpiry(AUTH_TTL);
             loadData();
         } else {
-            authError = '비밀번호가 올바르지 않습니다.';
+            authError = '삐빅. 탈락입니다.';
         }
     }
 
