@@ -63,6 +63,9 @@
         {
 						name: '서비스운영팀', path: 'http://svctech.daou.co.kr/'
         },
+        {
+						name: 'GatewayOperations', path: 'http://123.2.134.130:10120/'
+        },
     ];
 
     function handleSubItemClick(item) {

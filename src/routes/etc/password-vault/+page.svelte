@@ -272,8 +272,8 @@
     async function saveEdit(id) {
         const buf = editBuffers.get(id);
         if (!buf) return;
-        if (!buf.category?.trim() || !buf.username?.trim()) {
-            showToastMessage('카테고리와 아이디는 필수입니다.', 'error');
+        if (!buf.category?.trim() || !buf.username?.trim() || !buf.password?.trim()) {
+            showToastMessage('카테고리, 아이디, 비밀번호는 필수입니다.', 'error');
             return;
         }
         isSaving = true;
@@ -284,6 +284,7 @@
                     category: buf.category.trim(),
                     username: buf.username.trim(),
                     password: buf.password ?? '',
+                    url: buf.url?.trim() || null,
                     group_id: buf.group_id || null,
                     updated_at: new Date().toISOString(),
                 })
@@ -301,7 +302,7 @@
     }
 
     function defaultNewRow() {
-        return {_key: crypto.randomUUID(), category: '', username: '', password: '', group_id: selectedGroupId ?? ''};
+        return {_key: crypto.randomUUID(), category: '', username: '', password: '', url: '', group_id: selectedGroupId ?? ''};
     }
 
     function startAdd() {
@@ -318,8 +319,8 @@
     async function saveNewRow(key) {
         const r = newRows.find((r) => r._key === key);
         if (!r) return;
-        if (!r.category.trim() || !r.username.trim()) {
-            showToastMessage('카테고리와 아이디는 필수입니다.', 'error');
+        if (!r.category.trim() || !r.username.trim() || !r.password.trim()) {
+            showToastMessage('카테고리, 아이디, 비밀번호는 필수입니다.', 'error');
             return;
         }
         isSaving = true;
@@ -328,6 +329,7 @@
                 category: r.category.trim(),
                 username: r.username.trim(),
                 password: r.password ?? '',
+                url: r.url?.trim() || null,
                 group_id: r.group_id || null,
                 updated_at: new Date().toISOString(),
                 display_order: rows.length,
@@ -499,7 +501,7 @@
                                     {/if}
                                     <th class="w-10">NO</th>
                                     <th class="w-28">그룹</th>
-                                    <th class="w-32">카테고리</th>
+                                    <th class="w-40">카테고리</th>
                                     <th class="w-44">아이디</th>
                                     <th class="w-56">비밀번호</th>
                                     <th class="w-44">수정일</th>
@@ -525,12 +527,20 @@
                                                 </select>
                                             </td>
                                             <td>
-                                                <input
-                                                    type="text"
-                                                    class="input input-bordered input-sm w-full"
-                                                    bind:value={buf.category}
-                                                    placeholder="카테고리"
-                                                />
+                                                <div class="flex flex-col gap-1">
+                                                    <input
+                                                        type="text"
+                                                        class="input input-bordered input-sm w-full"
+                                                        bind:value={buf.category}
+                                                        placeholder="카테고리"
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        class="input input-bordered input-sm w-full"
+                                                        bind:value={buf.url}
+                                                        placeholder="https://"
+                                                    />
+                                                </div>
                                             </td>
                                             <td>
                                                 <input
@@ -586,7 +596,30 @@
                                                     <span class="text-sm text-base-content/30">-</span>
                                                 {/if}
                                             </td>
-                                            <td>{row.category}</td>
+                                            <td>
+                                                <div class="flex items-center justify-between gap-1">
+                                                    <span>{row.category}</span>
+                                                    {#if row.url}
+                                                        <a
+                                                            href={row.url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            class="btn btn-xs btn-square btn-ghost shrink-0"
+                                                            title="바로가기"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                            </svg>
+                                                        </a>
+                                                    {:else}
+                                                        <button class="btn btn-xs btn-square btn-ghost btn-disabled shrink-0">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                            </svg>
+                                                        </button>
+                                                    {/if}
+                                                </div>
+                                            </td>
                                             <td class="font-mono">{row.username}</td>
                                             <td>
                                                 <div class="flex items-start gap-2">
@@ -639,12 +672,20 @@
                                                 </select>
                                             </td>
                                             <td>
-                                                <input
-                                                    type="text"
-                                                    class="input input-bordered input-sm w-full"
-                                                    bind:value={nr.category}
-                                                    placeholder="카테고리"
-                                                />
+                                                <div class="flex flex-col gap-1">
+                                                    <input
+                                                        type="text"
+                                                        class="input input-bordered input-sm w-full"
+                                                        bind:value={nr.category}
+                                                        placeholder="카테고리"
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        class="input input-bordered input-sm w-full"
+                                                        bind:value={nr.url}
+                                                        placeholder="https://"
+                                                    />
+                                                </div>
                                             </td>
                                             <td>
                                                 <input
