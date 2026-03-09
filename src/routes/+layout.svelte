@@ -30,6 +30,12 @@
                 {name: 'DB 업무 요청 양식', path: '/redmine/db-request-form'},
             ]
         },
+			{
+				category: '기타',
+				items: [
+					{name: '비밀번호 모음집', path: '/etc/password-vault'},
+				]
+			},
     ];
 
     const quickLinks = [
