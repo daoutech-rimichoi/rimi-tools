@@ -15,7 +15,7 @@
         {
             category: '문장완성',
             items: [
-                {name: '배포 현황 공유 양식', path: '/sentenceCompletion/deployment-status-sharing-form'},
+                {name: '배포 예정 현황 양식', path: '/sentenceCompletion/upcoming-deployment-status-form'},
                 {name: '메신저 문구 양식', path: '/sentenceCompletion/messenger-form'},
                 {name: '업무 AI 명령 양식', path: '/sentenceCompletion/ai-command-form'},
             ]

@@ -54,14 +54,6 @@
     const presence = createPresenceStore('deployment-status-sharing-form2');
     const {onlineUsers, editingUsers, setEditing, clearEditing} = presence;
 
-    // Helper to get editing indicator for a field
-    function getEditingIndicator(editors) {
-        if (editors && editors.length > 0) {
-            return `${editors.length}명이 작성 중...`;
-        }
-        return null;
-    }
-
     // Reactive editing indicators for each section
     let approvedEditing = $derived($editingUsers['approved']);
     let pendingEditing = $derived($editingUsers['pending']);
@@ -281,13 +273,8 @@
         approvedRows = [...approvedRows, {...row, id: crypto.randomUUID()}];
     }
 
-    // Redmine 상태 토글
-    function toggleRedmineStatus(row) {
-        row.status = row.status === '대기' ? '완료' : '대기';
-    }
-
-    // Scenario 상태 토글
-    function toggleScenarioStatus(row) {
+    // 상태 토글
+    function toggleStatus(row) {
         row.status = row.status === '대기' ? '완료' : '대기';
     }
 
@@ -481,8 +468,9 @@
 </script>
 
 <div class="container mx-auto p-4">
-    <div class="mb-8 rounded-xl bg-neutral py-5 text-center shadow">
-        <h1 class="text-2xl font-bold text-neutral-content">배포 현황 공유 양식</h1>
+    <div class="mb-8 bg-gradient-to-r from-yellow-300 to-orange-400 text-white py-8 rounded-2xl shadow-2xl text-center">
+        <h1 class="text-4xl font-bold mb-2">🚀 배포 예정 현황 양식 🚀</h1>
+				<p class="text-lg opacity-90">"저장"은 선택이 아닌 필수임당</p>
     </div>
     {#if $onlineUsers.length > 0}
         <div class="mb-4 flex justify-end">
@@ -528,8 +516,6 @@
                         <div class="space-y-2">
                             {#each approvedRows as row, index (row.id)}
                                 <div
-                                    role="button"
-                                    tabindex="0"
                                     class="flex gap-1 items-center"
                                     ondragover={handleDragOver}
                                     ondrop={(e) => handleDrop(e, index, 'approved')}
@@ -727,7 +713,7 @@
                                         ondragend={handleDragEnd}
                                     >⠿</span>
                                     <button
-                                        onclick={() => toggleRedmineStatus(row)}
+                                        onclick={() => toggleStatus(row)}
                                         onfocus={() => setEditing('redmine')}
                                         onblur={() => clearEditing('redmine')}
                                         class="btn btn-xs btn-outline {row.status === '완료' ? 'btn-success' : 'btn-warning'}"
@@ -816,7 +802,7 @@
                                         ondragend={handleDragEnd}
                                     >⠿</span>
                                     <button
-                                        onclick={() => toggleScenarioStatus(row)}
+                                        onclick={() => toggleStatus(row)}
                                         onfocus={() => setEditing('scenario')}
                                         onblur={() => clearEditing('scenario')}
                                         class="btn btn-xs btn-outline {row.status === '완료' ? 'btn-success' : 'btn-warning'}"
