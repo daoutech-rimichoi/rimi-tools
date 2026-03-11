@@ -70,34 +70,58 @@
             date.getMonth() + 1
         }월 ${date.getDate()}일 ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
 
-        const fields = [
-            {label: '작업 사유', value: reason},
-            {label: '작업 내용 (상세)', value: details},
-            {label: '작업 구분', value: type},
-            {label: '대상 시스템', value: system},
-            {label: '대상 테이블명', value: table},
-            {label: '운영 작업 예상 영향도', value: impact},
-            {label: '운영(검수) 반영일시', value: formattedDate},
-            {label: '백업 및 롤백계획', value: backup}
+        function wrapLabel(text) {
+            return `<span style="font-size:10pt"><span style="font-weight:700"><span style="color:black"><span style="font-style:normal"><span style="text-decoration:none"><span style="font-family:&quot;맑은 고딕&quot;,monospace">${text}</span></span></span></span></span></span>`;
+        }
+
+        function wrapValue(text) {
+            return `<span style="font-size:10pt"><span style="color:black"><span style="font-weight:400"><span style="font-style:normal"><span style="text-decoration:none"><span style="font-family:&quot;맑은 고딕&quot;,monospace">${text}</span></span></span></span></span></span>`;
+        }
+
+        const rows = [
+            {label: '작업 사유',          value: reason,        trHeight: 33,  trHeightPt: '24.75pt', isFirst: true,  multiline: false},
+            {label: '작업 내용 (상세)',    value: details,       trHeight: 102, trHeightPt: '77.25pt', isFirst: false, multiline: true},
+            {label: '작업 구분',          value: type,          trHeight: 29,  trHeightPt: '21.75pt', isFirst: false, multiline: false},
+            {label: '대상 시스템',        value: system,        trHeight: 29,  trHeightPt: '21.75pt', isFirst: false, multiline: false},
+            {label: '대상 테이블명',      value: table,         trHeight: 29,  trHeightPt: '21.75pt', isFirst: false, multiline: false},
+            {label: '운영작업 예상 영향도', value: impact,       trHeight: 29,  trHeightPt: '21.75pt', isFirst: false, multiline: false},
+            {label: '운영(검수) 반영일시', value: formattedDate, trHeight: 29,  trHeightPt: '21.75pt', isFirst: false, multiline: false},
+            {label: '백업 및 롤백계획',   value: backup,        trHeight: 29,  trHeightPt: '21.75pt', isFirst: false, multiline: false},
         ];
 
-        const body = fields
-            .map(
-                (
-                    field
-                ) => `<tr><td><p style="text-align: center;"><strong>${field.label}</strong></p></td>
-<td><p>${formatToList(field.value.split('\n')) || '-'}</p></td></tr>`
-            )
-            .join('\n');
+        const body = rows.map(({label, value, trHeight, trHeightPt, isFirst, multiline}) => {
+            const labelTdStyle = isFirst
+                ? `border:0.5pt solid windowtext; background:#d0cece; height:${trHeightPt}; width:132pt; text-align:left; padding-left:18px; padding-top:1px; padding-right:1px; vertical-align:middle; white-space:nowrap`
+                : `border:0.5pt solid windowtext; background:#d0cece; height:${trHeightPt}; border-top:none; text-align:left; padding-left:18px; padding-top:1px; padding-right:1px; vertical-align:middle; white-space:nowrap`;
+
+            const valueTdStyle = isFirst
+                ? `border-top: 0.5pt solid windowtext; border-right: 0.5pt solid windowtext; border-bottom: 0.5pt solid windowtext; border-image: initial; border-left: none; width: 546px; padding-top: 1px; padding-right: 1px; padding-left: 1px; vertical-align: middle; white-space: nowrap;`
+                : multiline
+                    ? `border-right: 0.5pt solid windowtext; border-bottom: 0.5pt solid windowtext; border-image: initial; border-top: none; border-left: none; width: 546px; white-space: normal; padding-top: 1px; padding-right: 1px; padding-left: 1px; vertical-align: middle;`
+                    : `border-right: 0.5pt solid windowtext; border-bottom: 0.5pt solid windowtext; border-image: initial; border-top: none; border-left: none; padding-top: 1px; padding-right: 1px; padding-left: 1px; vertical-align: middle; white-space: nowrap; width: 546px;`;
+
+            const formattedValue = formatToList(value.split('\n')) || '　';
+
+            return `<tr height="${trHeight}" style="height:${trHeightPt}">
+            <td height="${trHeight}" style="${labelTdStyle}" width="176">${wrapLabel(label)}</td>
+            <td style="${valueTdStyle}" width="417">${wrapValue(formattedValue)}</td>
+        </tr>`;
+        }).join('\n        ');
 
         return `<p>안녕하세요. 시스템코어개발팀 ${assignee}입니다.<br />
 아래 내용으로 DB 작업 요청드립니다.</p>
 
-<table>
-	<tbody>
-		${body}
-	</tbody>
+<table style="border-collapse: collapse; width: 746px; border: none;" width="593">
+    <colgroup>
+        <col style="width:132pt" width="176" />
+        <col style="width:313pt" width="417" />
+    </colgroup>
+    <tbody>
+        ${body}
+    </tbody>
 </table>
+
+<p>&nbsp;</p>
 
 <p>감사합니다.</p>`;
     })();
