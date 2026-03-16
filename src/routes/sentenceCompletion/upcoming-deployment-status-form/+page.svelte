@@ -849,6 +849,25 @@
                                             />
                                         {/if}
                                     {/if}
+                                    {#if row.type === '운영작업시나리오'}
+                                        <a
+                                            href="https://daoucokr.sharepoint.com/sites/syscore/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2Fsyscore%2FShared%20Documents%2F%EB%B0%B0%ED%8F%AC%2F%EC%9A%B4%EC%98%81%EC%9E%91%EC%97%85%EC%8B%9C%EB%82%98%EB%A6%AC%EC%98%A4&viewid=f6a05838%2D57c9%2D4b2d%2D9eb8%2D7da3cfadb488"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="btn btn-xs btn-square btn-ghost"
+                                            title="운영작업시나리오 SharePoint 열기"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                            </svg>
+                                        </a>
+                                    {:else}
+                                        <button class="btn btn-xs btn-square btn-ghost btn-disabled" title="운영작업시나리오 선택 시 활성화">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                            </svg>
+                                        </button>
+                                    {/if}
                                     <button
                                         onclick={() => removeScenarioRow(row.id)}
                                         onfocus={() => setEditing('scenario')}
