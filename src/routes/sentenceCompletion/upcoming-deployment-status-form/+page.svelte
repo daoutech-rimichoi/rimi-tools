@@ -827,6 +827,47 @@
                                             onfocus={() => setEditing('scenario')}
                                             onblur={() => clearEditing('scenario')}
                                         />
+                                        {#if extractTicketLink(row.customText)}
+                                            <a
+                                                href={extractTicketLink(row.customText).url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="btn btn-xs btn-square btn-ghost"
+                                                title="{extractTicketLink(row.customText).type === 'jira' ? 'JIRA' : 'Redmine'} 링크 열기 ({extractTicketLink(row.customText).ticket})"
+                                            >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    class="h-4 w-4"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke="currentColor"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                                    />
+                                                </svg>
+                                            </a>
+                                        {:else}
+                                            <button class="btn btn-xs btn-square btn-ghost btn-disabled" title="티켓 번호를 입력하세요">
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    class="h-4 w-4"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke="currentColor"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                                    />
+                                                </svg>
+                                            </button>
+                                        {/if}
                                     {:else}
                                         <select
                                             bind:value={row.service}
@@ -861,7 +902,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                             </svg>
                                         </a>
-                                    {:else}
+                                    {:else if row.type !== '직접입력'}
                                         <button class="btn btn-xs btn-square btn-ghost btn-disabled" title="운영작업시나리오 선택 시 활성화">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
