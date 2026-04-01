@@ -12,7 +12,7 @@
     let prBranch = $state('');
 
     let prResult = $derived(
-        `# PR 작성\n- 참고md: ${prMdFile}\n- 프로젝트: ${prProject}\n- 브랜치: ${prBranch}\nmd파일 참고해서 해당 프로젝트의 브랜치로 커밋내용에대해 PR 작성해줘`
+        `# PR 작성\n- 참고md: ${prMdFile}\n- 프로젝트: ${prProject}\n- 브랜치: ${prBranch}\nmd파일 참고해서 해당 프로젝트의 브랜치로 커밋내용에대해 PR 작성해줘\n커밋 내용에 따른 서비스 영향도, 예상문제 발생 대상 체크리스트도 함꼐 작성해줘`
     );
 
     function resetPr() {
