@@ -61,6 +61,9 @@
             ]
         },
         {
+						name: 'ClipShare', path: 'https://clipshare.bizppurio.com:9875/'
+        },
+        {
 						name: '서비스운영팀', path: 'http://svctech.daou.co.kr/'
         },
         {
