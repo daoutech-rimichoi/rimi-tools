@@ -45,7 +45,7 @@ Netlify CLI를 통해 실행하면 Functions와 Vite 개발 서버가 함께 구
 npm run dev
 
 # Netlify 환경 시뮬레이션 (포트 8888) - 추천
-npm run dev:netlify
+netlify dev
 ```
 
 ## 🧪 테스트 및 품질 관리
