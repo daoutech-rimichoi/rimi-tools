@@ -18,6 +18,7 @@
                 {name: '배포 예정 현황 양식', path: '/sentenceCompletion/upcoming-deployment-status-form'},
                 {name: '메신저 문구 양식', path: '/sentenceCompletion/messenger-form'},
                 {name: '업무 AI 명령 양식', path: '/sentenceCompletion/ai-command-form'},
+                {name: '일일 점검 양식', path: '/sentenceCompletion/daily-check-form'},
             ]
         },
         {
