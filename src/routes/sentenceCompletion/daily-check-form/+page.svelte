@@ -2,9 +2,9 @@
     import { USER_NAMES } from '$lib/config/users.js';
     import { toast } from '$lib/stores/common.js';
     import { copyToClipboard } from '$lib/utils/clipboard.js';
-
-    const now = new Date();
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    import { supabase } from '$lib/supabaseClient.js';
+    import { onMount } from 'svelte';
+    import { browser } from '$app/environment';
 
     const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
     const MINUTES = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
@@ -17,6 +17,11 @@
         { name: '080수신거부시나리오', tooltip: 'stella01~02 > ivr',                  primary: '배윤희', secondary: '최경림', log: 'O', batch: 'O',   process: 'O', fs: 'O', send: 'N/A', report: 'N/A', payment: 'N/A' },
         { name: 'Java ASP',          tooltip: 'ares01~02, asic01~02',               primary: '한수찬', secondary: '배윤희', log: 'O', batch: 'O',   process: 'O', fs: 'O', send: 'N/A', report: 'N/A', payment: 'N/A' },
     ];
+
+    function todayDate() {
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    }
 
     function nowTimeParts() {
         const now = new Date();
@@ -48,6 +53,26 @@
         }));
     }
 
+    function mergeRows(savedRows) {
+        const t = nowTimeParts();
+        return FIXED_SERVICES.map(svc => {
+            const saved = Array.isArray(savedRows) ? savedRows.find(r => r.name === svc.name) : null;
+            if (saved) return { ...svc, ...saved };
+            return {
+                ...svc,
+                inspector: '',
+                checkTimeStartH: t.startH,
+                checkTimeStartM: t.startM,
+                checkTimeEndH: t.endH,
+                checkTimeEndM: t.endM,
+                responseOver: '-',
+                resultMode: 'normal',
+                customResult: '',
+                notes: '-',
+            };
+        });
+    }
+
     const initTime = nowTimeParts();
     let resetKey = $state(0);
     let globalInspector = $state('');
@@ -56,7 +81,145 @@
     let globalEndH = $state(initTime.endH);
     let globalEndM = $state(initTime.endM);
     let rows = $state(defaultRows());
+    let todayStr = $state(todayDate());
 
+    // DB 동기화 상태 추적
+    let loaded = false;
+    let lastSavedRows = '';
+    let saveTimeout = null;
+    let channel = null;
+    let midnightTimer = null;
+
+    // --- DB 연동 ---
+    async function loadFromDb() {
+        const today = todayDate();
+
+        // 오늘 이전 데이터 삭제
+        supabase.from('daily_check_form').delete().lt('check_date', today).then();
+
+        const { data, error } = await supabase
+            .from('daily_check_form')
+            .select('rows')
+            .eq('check_date', today)
+            .single();
+
+        if (error && error.code !== 'PGRST116') {
+            console.error('Load error:', error);
+            loaded = true;
+            return;
+        }
+
+        if (data?.rows) {
+            lastSavedRows = JSON.stringify(data.rows);
+            rows = mergeRows(data.rows);
+            resetKey++;
+        } else {
+            lastSavedRows = '';
+        }
+        loaded = true;
+    }
+
+    async function saveToDb() {
+        const currentJson = JSON.stringify(rows);
+        if (currentJson === lastSavedRows) return;
+
+        const today = todayDate();
+        const { error } = await supabase
+            .from('daily_check_form')
+            .upsert(
+                { check_date: today, rows, updated_at: new Date().toISOString() },
+                { onConflict: 'check_date' }
+            );
+
+        if (error) {
+            console.error('Save error:', error);
+        } else {
+            lastSavedRows = currentJson;
+        }
+    }
+
+    function debouncedSave() {
+        if (saveTimeout) clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(saveToDb, 600);
+    }
+
+    function subscribeRealtime() {
+        const today = todayDate();
+        channel = supabase
+            .channel(`daily_check_form:${today}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'daily_check_form',
+                    filter: `check_date=eq.${today}`,
+                },
+                (payload) => {
+                    if (payload.new?.rows) {
+                        // 외부 변경 — save 트리거 방지를 위해 lastSavedRows 먼저 갱신
+                        lastSavedRows = JSON.stringify(payload.new.rows);
+                        rows = mergeRows(payload.new.rows);
+                        resetKey++;
+                    }
+                }
+            )
+            .subscribe();
+    }
+
+    function scheduleMidnightReset() {
+        const now = new Date();
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
+        const msUntilMidnight = tomorrow - now;
+
+        midnightTimer = setTimeout(async () => {
+            // 채널 재구독 (새 날짜)
+            if (channel) {
+                await supabase.removeChannel(channel);
+                channel = null;
+            }
+            // UI 초기화
+            loaded = false;
+            lastSavedRows = '';
+            todayStr = todayDate();
+            const t = nowTimeParts();
+            globalInspector = '';
+            globalStartH = t.startH;
+            globalStartM = t.startM;
+            globalEndH = t.endH;
+            globalEndM = t.endM;
+            rows = defaultRows();
+            resetKey++;
+            // 새 날짜로 DB 조회 (데이터 없으면 기본값 유지)
+            await loadFromDb();
+            subscribeRealtime();
+            scheduleMidnightReset();
+        }, msUntilMidnight);
+    }
+
+    onMount(() => {
+        if (!browser) return;
+
+        loadFromDb();
+        subscribeRealtime();
+        scheduleMidnightReset();
+
+        return () => {
+            if (channel) supabase.removeChannel(channel);
+            if (saveTimeout) clearTimeout(saveTimeout);
+            if (midnightTimer) clearTimeout(midnightTimer);
+        };
+    });
+
+    // rows 변경 시 자동 저장
+    $effect(() => {
+        JSON.stringify(rows); // 의존성 등록
+        if (loaded) debouncedSave();
+    });
+
+    // --- UI 액션 ---
     function applyGlobal() {
         rows = rows.map(r => ({
             ...r,
@@ -85,6 +248,7 @@
         globalStartM = t.startM;
         globalEndH = t.endH;
         globalEndM = t.endM;
+        lastSavedRows = ''; // 다음 변경 시 저장되도록 초기화
         rows = defaultRows();
         resetKey++;
     }
@@ -297,7 +461,7 @@
                                 {/each}
                             </select>
                         </td>
-                        <!-- 점검 시간 — 한 줄 -->
+                        <!-- 점검 시간 -->
                         <td class="border border-base-300 p-1">
                             <div class="flex items-center gap-1 justify-center">
                                 <select class="select select-bordered select-sm w-16" bind:value={row.checkTimeStartH}>
