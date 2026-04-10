@@ -53,26 +53,6 @@
         }));
     }
 
-    function mergeRows(savedRows) {
-        const t = nowTimeParts();
-        return FIXED_SERVICES.map(svc => {
-            const saved = Array.isArray(savedRows) ? savedRows.find(r => r.name === svc.name) : null;
-            if (saved) return { ...svc, ...saved };
-            return {
-                ...svc,
-                inspector: '',
-                checkTimeStartH: t.startH,
-                checkTimeStartM: t.startM,
-                checkTimeEndH: t.endH,
-                checkTimeEndM: t.endM,
-                responseOver: '-',
-                resultMode: 'normal',
-                customResult: '',
-                notes: '-',
-            };
-        });
-    }
-
     const initTime = nowTimeParts();
     let resetKey = $state(0);
     let globalInspector = $state('');
@@ -83,84 +63,76 @@
     let rows = $state(defaultRows());
     let todayStr = $state(todayDate());
 
-    // DB 동기화 상태 추적
-    let loaded = false;
-    let lastSavedRows = '';
-    let saveTimeout = null;
+    // 점검 상태 (실시간 DB 동기화)
+    let selectedInspector = $state('');
+    let statuses = $state(Object.fromEntries(USER_NAMES.map(name => [name, ''])));
+    let activeStatuses = $derived(USER_NAMES.filter(name => statuses[name]));
+    let allDone = $derived(activeStatuses.length > 0 && activeStatuses.every(name => statuses[name] === '점검완료'));
+    let hasAnyStatus = $derived(activeStatuses.length > 0);
     let channel = null;
     let midnightTimer = null;
 
-    // --- DB 연동 ---
-    async function loadFromDb() {
+    async function loadStatuses() {
         const today = todayDate();
-
-        // 오늘 이전 데이터 삭제
-        supabase.from('daily_check_form').delete().lt('check_date', today).then();
+        supabase.from('daily_check_status').delete().lt('check_date', today).then();
 
         const { data, error } = await supabase
-            .from('daily_check_form')
-            .select('rows')
-            .eq('check_date', today)
-            .single();
-
-        if (error && error.code !== 'PGRST116') {
-            console.error('Load error:', error);
-            loaded = true;
-            return;
-        }
-
-        if (data?.rows) {
-            lastSavedRows = JSON.stringify(data.rows);
-            rows = mergeRows(data.rows);
-            resetKey++;
-        } else {
-            lastSavedRows = '';
-        }
-        loaded = true;
-    }
-
-    async function saveToDb() {
-        const currentJson = JSON.stringify(rows);
-        if (currentJson === lastSavedRows) return;
-
-        const today = todayDate();
-        const { error } = await supabase
-            .from('daily_check_form')
-            .upsert(
-                { check_date: today, rows, updated_at: new Date().toISOString() },
-                { onConflict: 'check_date' }
-            );
+            .from('daily_check_status')
+            .select('user_name, status')
+            .eq('check_date', today);
 
         if (error) {
-            console.error('Save error:', error);
-        } else {
-            lastSavedRows = currentJson;
+            console.error('Load error:', error);
+            return;
+        }
+        if (data) {
+            for (const row of data) {
+                if (row.user_name in statuses) {
+                    statuses[row.user_name] = row.status;
+                }
+            }
         }
     }
 
-    function debouncedSave() {
-        if (saveTimeout) clearTimeout(saveTimeout);
-        saveTimeout = setTimeout(saveToDb, 600);
+    async function saveStatus(userName, status) {
+        for (const name of USER_NAMES) {
+            if (name !== userName) statuses[name] = '';
+        }
+        statuses[userName] = status;
+        const today = todayDate();
+        await supabase.from('daily_check_status').delete().eq('check_date', today).neq('user_name', userName);
+        const { error } = await supabase
+            .from('daily_check_status')
+            .upsert(
+                { check_date: today, user_name: userName, status, updated_at: new Date().toISOString() },
+                { onConflict: 'check_date,user_name' }
+            );
+        if (error) console.error('Save error:', error);
     }
 
-    function subscribeRealtime() {
+    async function resetStatus() {
+        selectedInspector = '';
+        for (const name of USER_NAMES) statuses[name] = '';
+        const today = todayDate();
+        await supabase.from('daily_check_status').delete().eq('check_date', today);
+    }
+
+    function subscribeStatuses() {
         const today = todayDate();
         channel = supabase
-            .channel(`daily_check_form:${today}`)
+            .channel(`daily_check_status:${today}`)
             .on(
                 'postgres_changes',
                 {
                     event: '*',
                     schema: 'public',
-                    table: 'daily_check_form',
+                    table: 'daily_check_status',
                     filter: `check_date=eq.${today}`,
                 },
                 (payload) => {
-                    if (payload.new?.rows) {
-                        // 외부 변경 — save 트리거 방지를 위해 lastSavedRows 먼저 갱신
-                        lastSavedRows = JSON.stringify(payload.new.rows);
-                        rows = mergeRows(payload.new.rows);
-                        resetKey++;
+                    const { user_name, status } = payload.new;
+                    if (user_name in statuses) {
+                        statuses[user_name] = status;
                     }
                 }
             )
@@ -175,48 +147,87 @@
         const msUntilMidnight = tomorrow - now;
 
         midnightTimer = setTimeout(async () => {
-            // 채널 재구독 (새 날짜)
             if (channel) {
                 await supabase.removeChannel(channel);
                 channel = null;
             }
             // UI 초기화
-            loaded = false;
-            lastSavedRows = '';
             todayStr = todayDate();
             const t = nowTimeParts();
+            selectedInspector = '';
             globalInspector = '';
             globalStartH = t.startH;
             globalStartM = t.startM;
             globalEndH = t.endH;
             globalEndM = t.endM;
             rows = defaultRows();
+            statuses = Object.fromEntries(USER_NAMES.map(name => [name, '']));
             resetKey++;
-            // 새 날짜로 DB 조회 (데이터 없으면 기본값 유지)
-            await loadFromDb();
-            subscribeRealtime();
+            // DB 이전 날짜 정리
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+            await Promise.all([
+                supabase.from('daily_check_status').delete().lte('check_date', yesterdayStr),
+                supabase.from('daily_check_form').delete().lte('check_date', yesterdayStr),
+            ]);
+            // 새 날짜로 로드 + 구독
+            await loadStatuses();
+            await loadRows();
+            subscribeStatuses();
             scheduleMidnightReset();
         }, msUntilMidnight);
     }
 
+    async function loadRows() {
+        const today = todayDate();
+        supabase.from('daily_check_form').delete().lt('check_date', today).then();
+        const { data, error } = await supabase
+            .from('daily_check_form')
+            .select('rows')
+            .eq('check_date', today)
+            .single();
+        if (error && error.code !== 'PGRST116') {
+            console.error('Load error:', error);
+            return;
+        }
+        if (data?.rows) {
+            const t = nowTimeParts();
+            rows = FIXED_SERVICES.map(svc => {
+                const saved = data.rows.find(r => r.name === svc.name);
+                if (saved) return { ...svc, ...saved };
+                return { ...svc, inspector: '', checkTimeStartH: t.startH, checkTimeStartM: t.startM, checkTimeEndH: t.endH, checkTimeEndM: t.endM, responseOver: '-', resultMode: 'normal', customResult: '', notes: '-' };
+            });
+            resetKey++;
+        }
+    }
+
+    async function saveRows() {
+        const today = todayDate();
+        const { error } = await supabase
+            .from('daily_check_form')
+            .upsert(
+                { check_date: today, rows, updated_at: new Date().toISOString() },
+                { onConflict: 'check_date' }
+            );
+        if (error) {
+            console.error('Save error:', error);
+            toast.show('저장에 실패했습니다.', 'error');
+        } else {
+            toast.show('저장되었습니다.', 'success');
+        }
+    }
+
     onMount(() => {
         if (!browser) return;
-
-        loadFromDb();
-        subscribeRealtime();
+        loadStatuses();
+        loadRows();
+        subscribeStatuses();
         scheduleMidnightReset();
-
         return () => {
             if (channel) supabase.removeChannel(channel);
-            if (saveTimeout) clearTimeout(saveTimeout);
             if (midnightTimer) clearTimeout(midnightTimer);
         };
-    });
-
-    // rows 변경 시 자동 저장
-    $effect(() => {
-        JSON.stringify(rows); // 의존성 등록
-        if (loaded) debouncedSave();
     });
 
     // --- UI 액션 ---
@@ -248,7 +259,6 @@
         globalStartM = t.startM;
         globalEndH = t.endH;
         globalEndM = t.endM;
-        lastSavedRows = ''; // 다음 변경 시 저장되도록 초기화
         rows = defaultRows();
         resetKey++;
     }
@@ -347,49 +357,83 @@
         <h1 class="text-2xl font-bold text-neutral-content">일일 점검 양식</h1>
     </div>
 
-    <!-- 공통 입력 (전체 적용) -->
-    <div class="card bg-base-100 shadow mb-4">
-        <div class="card-body py-4">
-            <div class="flex flex-wrap items-end gap-2">
-                <!-- 점검자 -->
-                <div class="flex flex-col">
-                    <label class="label pb-1"><span class="label-text font-semibold">점검자</span></label>
-                    <select id="global-inspector" class="select select-bordered select-sm w-36" bind:value={globalInspector}>
-                        <option value="">선택</option>
-                        {#each USER_NAMES as name}
-                            <option value={name}>{name}</option>
+    <!-- 점검 상태 선택 -->
+    <div class="mb-2 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <select class="select select-bordered select-sm w-36" bind:value={selectedInspector}>
+                <option value="">점검자 선택</option>
+                {#each USER_NAMES as name}
+                    <option value={name}>{name}</option>
+                {/each}
+            </select>
+            <label class="flex items-center gap-1 cursor-pointer">
+                <input type="radio" name="status-selected" class="radio radio-sm radio-warning"
+                    disabled={!selectedInspector}
+                    checked={selectedInspector && statuses[selectedInspector] === '점검중'}
+                    onchange={() => saveStatus(selectedInspector, '점검중')} />
+                <span class="text-sm">점검중</span>
+            </label>
+            <label class="flex items-center gap-1 cursor-pointer">
+                <input type="radio" name="status-selected" class="radio radio-sm radio-success"
+                    disabled={!selectedInspector}
+                    checked={selectedInspector && statuses[selectedInspector] === '점검완료'}
+                    onchange={() => saveStatus(selectedInspector, '점검완료')} />
+                <span class="text-sm">점검완료</span>
+            </label>
+        </div>
+        <button class="btn btn-outline btn-error btn-sm" onclick={resetStatus}>초기화</button>
+    </div>
+
+    <!-- 점검 상태 표시 -->
+    <div class="card shadow mb-4 {allDone ? 'bg-success/40' : hasAnyStatus ? 'bg-warning/40' : 'bg-info/40'}">
+        <div class="card-body py-5">
+            <div class="text-center">
+                <p class="text-base opacity-60 mb-1">{todayStr}</p>
+                <h2 class="text-2xl font-bold flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+                    {#if hasAnyStatus}
+                        {#each activeStatuses as name}
+                            <span class="inline-flex items-center gap-1.5">
+                                {name}
+                                <span class="font-normal text-xl {statuses[name] === '점검완료' ? 'text-success' : 'text-warning'}">{statuses[name]}</span>
+                            </span>
                         {/each}
-                    </select>
-                </div>
-                <!-- 점검 시간 -->
-                <div class="form-control">
-                    <label class="label pb-1">
-                        <span class="label-text font-semibold">점검 시간</span>
-                    </label>
-                    <div class="flex items-center gap-1">
-                        <select class="select select-bordered select-sm w-16" bind:value={globalStartH}>
-                            {#each HOURS as h}<option value={h}>{h}</option>{/each}
-                        </select>
-                        <span class="text-sm">:</span>
-                        <select class="select select-bordered select-sm w-16" bind:value={globalStartM}>
-                            {#each MINUTES as m}<option value={m}>{m}</option>{/each}
-                        </select>
-                        <span class="text-sm px-1">~</span>
-                        <select class="select select-bordered select-sm w-16" bind:value={globalEndH}>
-                            {#each HOURS as h}<option value={h}>{h}</option>{/each}
-                        </select>
-                        <span class="text-sm">:</span>
-                        <select class="select select-bordered select-sm w-16" bind:value={globalEndM}>
-                            {#each MINUTES as m}<option value={m}>{m}</option>{/each}
-                        </select>
-                    </div>
-                </div>
-                <button class="btn btn-outline btn-sm self-end" onclick={applyGlobal}>전체 적용</button>
-                <div class="flex gap-2 ml-auto self-end">
-                    <button class="btn btn-error btn-sm" onclick={reset}>초기화</button>
-                </div>
+                    {:else}
+                        <span>👉 현재 점검중인 본인을 꼭 기록해 주쎄렴 👈</span>
+                    {/if}
+                </h2>
             </div>
         </div>
+    </div>
+
+    <h2 class="text-lg font-bold mb-2">입력</h2>
+    <!-- 공통 입력 (전체 적용) -->
+    <div class="mb-4 flex flex-wrap items-center gap-2">
+        <select id="global-inspector" class="select select-bordered select-sm w-36" bind:value={globalInspector}>
+            <option value="">점검자 선택</option>
+            {#each USER_NAMES as name}
+                <option value={name}>{name}</option>
+            {/each}
+        </select>
+        <div class="flex items-center gap-1">
+            <select class="select select-bordered select-sm w-16" bind:value={globalStartH}>
+                {#each HOURS as h}<option value={h}>{h}</option>{/each}
+            </select>
+            <span class="text-sm">:</span>
+            <select class="select select-bordered select-sm w-16" bind:value={globalStartM}>
+                {#each MINUTES as m}<option value={m}>{m}</option>{/each}
+            </select>
+            <span class="text-sm px-1">~</span>
+            <select class="select select-bordered select-sm w-16" bind:value={globalEndH}>
+                {#each HOURS as h}<option value={h}>{h}</option>{/each}
+            </select>
+            <span class="text-sm">:</span>
+            <select class="select select-bordered select-sm w-16" bind:value={globalEndM}>
+                {#each MINUTES as m}<option value={m}>{m}</option>{/each}
+            </select>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick={applyGlobal}>전체 적용</button>
+        <button class="btn btn-outline btn-error btn-sm ml-auto" onclick={reset}>초기화</button>
+        <button class="btn btn-primary btn-sm" onclick={saveRows}>저장하기</button>
     </div>
 
     <!-- 입력 표 -->
@@ -437,9 +481,9 @@
             </thead>
             <tbody>
                 {#each rows as row}
-                    <tr>
+                    <tr class={row.inspector ? '' : 'bg-error/20'}>
                         <!-- 서비스 (sticky) -->
-                        <td class="border border-base-300 font-semibold whitespace-nowrap p-1 bg-base-100" style="position: sticky; left: 0; z-index: 1;">
+                        <td class="border border-base-300 font-semibold whitespace-nowrap p-1 {row.inspector ? 'bg-base-100' : 'bg-error/20'}" style="position: sticky; left: 0; z-index: 1;">
                             <div class="flex items-center gap-1">
                                 <span>{row.name}</span>
                                 <div class="tooltip tooltip-right" data-tip={row.tooltip}>
@@ -531,7 +575,7 @@
 
     <!-- 미리보기 -->
     <div class="mb-2 flex items-center justify-between">
-        <h2 class="text-lg font-bold">결과 미리보기</h2>
+        <h2 class="text-lg font-bold">결과</h2>
         <button class="btn btn-primary btn-sm" onclick={copyHtml}>표 복사</button>
     </div>
     <div class="mb-2 flex items-center gap-2">
