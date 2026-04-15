@@ -55,10 +55,9 @@
             ]
         },
         {
-            name: 'SharePoint',
+            name: 'GoogleDrive',
             items: [
-                {name: '시코팀', path: 'https://buly.kr/2qZWA4P'},
-                {name: '일일점검', path: 'https://buly.kr/AwgNHam'},
+                {name: '시코팀', path: 'https://drive.google.com/drive/u/1/folders/0AMJi1znV6czKUk9PVA'},
             ]
         },
         {
