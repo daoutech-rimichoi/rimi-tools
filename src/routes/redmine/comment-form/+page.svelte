@@ -21,7 +21,7 @@
     let isShortening = false;
     $: canShortenUrl =
         tcLink.startsWith(
-            'https://daoucokr.sharepoint.com/:x:/'
+            'https://docs.google.com/spreadsheets/d/'
         ) && !isShortening;
 
     // --- Logic for "개발 승인 요청" ---
