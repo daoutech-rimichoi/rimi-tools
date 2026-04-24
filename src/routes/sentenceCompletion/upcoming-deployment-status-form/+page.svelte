@@ -482,8 +482,9 @@
     {/if}
 
     {#if isLoading}
-        <div class="flex justify-center items-center h-64">
-            <span class="loading loading-spinner loading-lg"></span>
+        <div class="flex flex-col items-center justify-center py-24 gap-4">
+            <span class="loading loading-bars loading-lg text-primary"></span>
+            <p class="text-sm opacity-60">데이터를 불러오는 중입니다...</p>
         </div>
     {:else}
         <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
@@ -892,7 +893,7 @@
                                     {/if}
                                     {#if row.type === '운영작업시나리오'}
                                         <a
-                                            href="https://daoucokr.sharepoint.com/sites/syscore/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2Fsyscore%2FShared%20Documents%2F%EB%B0%B0%ED%8F%AC%2F%EC%9A%B4%EC%98%81%EC%9E%91%EC%97%85%EC%8B%9C%EB%82%98%EB%A6%AC%EC%98%A4&viewid=f6a05838%2D57c9%2D4b2d%2D9eb8%2D7da3cfadb488"
+                                            href="https://drive.google.com/drive/u/1/folders/1kY9_VlIAcJuedsZh4WKyF889gc7RnuXE"
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             class="btn btn-xs btn-square btn-ghost"

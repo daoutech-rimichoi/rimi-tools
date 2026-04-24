@@ -64,10 +64,11 @@
 						name: 'ClipShare', path: 'https://clipshare.bizppurio.com:9875/'
         },
         {
-						name: '서비스운영팀', path: 'http://svctech.daou.co.kr/'
-        },
-        {
-						name: 'GatewayOperations', path: 'http://123.2.134.130:10120/'
+            name: '기타',
+            items: [
+                {name: '서비스운영팀', path: 'http://svctech.daou.co.kr/'},
+                {name: 'GatewayOperations', path: 'http://123.2.134.130:10120/'},
+            ]
         },
     ];
 
@@ -134,7 +135,7 @@
                     {#if link.path}
                         <button class="btn btn-ghost border border-base-300 w-full justify-start" on:click={() => window.open(link.path, '_blank')}>{link.name}</button>
                     {:else}
-                        <div class="dropdown dropdown-right">
+                        <div class="dropdown dropdown-right dropdown-end">
                             <button tabindex="0" class="btn btn-ghost border border-base-300 w-full justify-start">{link.name}</button>
                             <div tabindex="0" role="menu" class="dropdown-content menu bg-base-100 rounded-box border border-base-300 shadow-lg z-50 w-full p-1 -ml-20">
                                 {#each link.items as item}

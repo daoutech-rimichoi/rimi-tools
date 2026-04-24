@@ -62,6 +62,10 @@
     let globalEndM = $state(initTime.endM);
     let rows = $state(defaultRows());
     let todayStr = $state(todayDate());
+    let commonCollapsed = $state(true);
+    let functionalCollapsed = $state(true);
+    let tableWidth = $derived(2555 - (commonCollapsed ? 285 : 0) - (functionalCollapsed ? 190 : 0));
+    let loading = $state(true);
 
     // 점검 상태 (실시간 DB 동기화)
     let selectedInspector = $state('');
@@ -220,8 +224,9 @@
 
     onMount(() => {
         if (!browser) return;
-        loadStatuses();
-        loadRows();
+        Promise.all([loadStatuses(), loadRows()]).finally(() => {
+            loading = false;
+        });
         subscribeStatuses();
         scheduleMidnightReset();
         return () => {
@@ -357,6 +362,12 @@
         <h1 class="text-2xl font-bold text-neutral-content">일일 점검 양식</h1>
     </div>
 
+    {#if loading}
+        <div class="flex flex-col items-center justify-center py-24 gap-4">
+            <span class="loading loading-bars loading-lg text-primary"></span>
+            <p class="text-sm opacity-60">데이터를 불러오는 중입니다...</p>
+        </div>
+    {:else}
     <!-- 점검 상태 선택 -->
     <div class="mb-2 flex items-center justify-between">
         <div class="flex items-center gap-3">
@@ -438,18 +449,26 @@
 
     <!-- 입력 표 -->
     <div class="overflow-x-auto rounded-xl shadow mb-8">
-        <table class="bg-base-100 text-center text-sm border-collapse" style="width: 2555px;">
+        <table class="bg-base-100 text-center text-sm border-collapse" style="width: {tableWidth}px;">
             <colgroup>
                 <col style="width: 133px;">
                 <col style="width: 68px;">
                 <col style="width: 68px;">
-                <col style="width: 95px;">
-                <col style="width: 95px;">
-                <col style="width: 95px;">
-                <col style="width: 95px;">
-                <col style="width: 95px;">
-                <col style="width: 95px;">
-                <col style="width: 95px;">
+                {#if !commonCollapsed}
+                    <col style="width: 95px;">
+                    <col style="width: 95px;">
+                    <col style="width: 95px;">
+                    <col style="width: 95px;">
+                {:else}
+                    <col style="width: 95px;">
+                {/if}
+                {#if !functionalCollapsed}
+                    <col style="width: 95px;">
+                    <col style="width: 95px;">
+                    <col style="width: 95px;">
+                {:else}
+                    <col style="width: 95px;">
+                {/if}
                 <col style="width: 144px;">
                 <col style="width: 320px;">
                 <col style="width: 363px;">
@@ -461,8 +480,16 @@
                     <th rowspan="2" class="border border-base-300 align-middle p-1 bg-base-200" style="position: sticky; left: 0; z-index: 2;">서비스</th>
                     <th rowspan="2" class="border border-base-300 align-middle p-1">담당자<br/>(정)</th>
                     <th rowspan="2" class="border border-base-300 align-middle p-1">담당자<br/>(부)</th>
-                    <th colspan="4" class="border border-base-300 p-1">공통 점검 대상</th>
-                    <th colspan="3" class="border border-base-300 p-1">기능 점검 대상</th>
+                    <th rowspan={commonCollapsed ? 2 : 1} colspan={commonCollapsed ? 1 : 4}
+                        class="border border-base-300 p-1 cursor-pointer select-none hover:bg-base-300"
+                        onclick={() => commonCollapsed = !commonCollapsed}>
+                        공통 점검 대상 {commonCollapsed ? '▸' : '▾'}
+                    </th>
+                    <th rowspan={functionalCollapsed ? 2 : 1} colspan={functionalCollapsed ? 1 : 3}
+                        class="border border-base-300 p-1 cursor-pointer select-none hover:bg-base-300"
+                        onclick={() => functionalCollapsed = !functionalCollapsed}>
+                        기능 점검 대상 {functionalCollapsed ? '▸' : '▾'}
+                    </th>
                     <th rowspan="2" class="border border-base-300 align-middle p-1">점검자</th>
                     <th rowspan="2" class="border border-base-300 align-middle p-1">점검 시간</th>
                     <th rowspan="2" class="border border-base-300 align-middle p-1">응답시간<br/>10초 초과</th>
@@ -470,13 +497,17 @@
                     <th rowspan="2" class="border border-base-300 align-middle p-1">확인 및<br/>조치사항</th>
                 </tr>
                 <tr class="bg-base-200 text-base-content">
-                    <th class="border border-base-300 p-1">로그<br/>점검</th>
-                    <th class="border border-base-300 p-1">배치<br/>수행</th>
-                    <th class="border border-base-300 p-1">프로세스<br/>동작</th>
-                    <th class="border border-base-300 p-1">파일<br/>시스템</th>
-                    <th class="border border-base-300 p-1">발송</th>
-                    <th class="border border-base-300 p-1">리포트</th>
-                    <th class="border border-base-300 p-1">결제</th>
+                    {#if !commonCollapsed}
+                        <th class="border border-base-300 p-1">로그<br/>점검</th>
+                        <th class="border border-base-300 p-1">배치<br/>수행</th>
+                        <th class="border border-base-300 p-1">프로세스<br/>동작</th>
+                        <th class="border border-base-300 p-1">파일<br/>시스템</th>
+                    {/if}
+                    {#if !functionalCollapsed}
+                        <th class="border border-base-300 p-1">발송</th>
+                        <th class="border border-base-300 p-1">리포트</th>
+                        <th class="border border-base-300 p-1">결제</th>
+                    {/if}
                 </tr>
             </thead>
             <tbody>
@@ -493,9 +524,20 @@
                         </td>
                         <td class="border border-base-300 p-1">{row.primary}</td>
                         <td class="border border-base-300 p-1">{row.secondary}</td>
-                        {#each [row.log, row.batch, row.process, row.fs, row.send, row.report, row.payment] as val}
-                            <td class="border border-base-300 p-1">{val}</td>
-                        {/each}
+                        {#if !commonCollapsed}
+                            {#each [row.log, row.batch, row.process, row.fs] as val}
+                                <td class="border border-base-300 p-1">{val}</td>
+                            {/each}
+                        {:else}
+                            <td class="border border-base-300 p-1 text-base-content/40">···</td>
+                        {/if}
+                        {#if !functionalCollapsed}
+                            {#each [row.send, row.report, row.payment] as val}
+                                <td class="border border-base-300 p-1">{val}</td>
+                            {/each}
+                        {:else}
+                            <td class="border border-base-300 p-1 text-base-content/40">···</td>
+                        {/if}
                         <!-- 점검자 -->
                         <td class="border border-base-300 p-1">
                             <select class="select select-bordered select-sm w-36" bind:value={row.inspector}>
@@ -585,4 +627,5 @@
     <div class="overflow-x-auto rounded-xl shadow p-4" style="background-color: white; color: black;">
         {@html previewHtml}
     </div>
+    {/if}
 </div>

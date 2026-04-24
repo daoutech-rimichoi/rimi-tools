@@ -488,8 +488,9 @@
                 </div>
 
                 {#if isLoading}
-                    <div class="flex justify-center p-12">
-                        <span class="loading loading-spinner loading-lg"></span>
+                    <div class="flex flex-col items-center justify-center py-24 gap-4">
+                        <span class="loading loading-bars loading-lg text-primary"></span>
+                        <p class="text-sm opacity-60">데이터를 불러오는 중입니다...</p>
                     </div>
                 {:else}
                     <div class="overflow-x-auto">
