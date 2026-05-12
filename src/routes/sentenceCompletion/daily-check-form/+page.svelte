@@ -74,7 +74,10 @@
     let allDone = $derived(activeStatuses.length > 0 && activeStatuses.every(name => statuses[name] === '점검완료'));
     let hasAnyStatus = $derived(activeStatuses.length > 0);
     let channel = null;
+    let formChannel = null;
     let midnightTimer = null;
+    let showRefreshAlert = $state(false);
+    let lastFormSavedAt = 0;
 
     async function loadStatuses() {
         const today = todayDate();
@@ -143,6 +146,32 @@
             .subscribe();
     }
 
+    function subscribeForm() {
+        const today = todayDate();
+        formChannel = supabase
+            .channel(`daily_check_form:${today}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'daily_check_form',
+                    filter: `check_date=eq.${today}`,
+                },
+                () => {
+                    // 본인이 저장한 경우 알림 무시 (2초 이내)
+                    if (lastFormSavedAt && Date.now() - lastFormSavedAt < 2000) return;
+                    showRefreshAlert = true;
+                }
+            )
+            .subscribe();
+    }
+
+    async function handleRefresh() {
+        showRefreshAlert = false;
+        await loadRows();
+    }
+
     function scheduleMidnightReset() {
         const now = new Date();
         const tomorrow = new Date(now);
@@ -154,6 +183,10 @@
             if (channel) {
                 await supabase.removeChannel(channel);
                 channel = null;
+            }
+            if (formChannel) {
+                await supabase.removeChannel(formChannel);
+                formChannel = null;
             }
             // UI 초기화
             todayStr = todayDate();
@@ -179,6 +212,7 @@
             await loadStatuses();
             await loadRows();
             subscribeStatuses();
+            subscribeForm();
             scheduleMidnightReset();
         }, msUntilMidnight);
     }
@@ -207,6 +241,7 @@
     }
 
     async function saveRows() {
+        lastFormSavedAt = Date.now();
         const today = todayDate();
         const { error } = await supabase
             .from('daily_check_form')
@@ -228,9 +263,11 @@
             loading = false;
         });
         subscribeStatuses();
+        subscribeForm();
         scheduleMidnightReset();
         return () => {
             if (channel) supabase.removeChannel(channel);
+            if (formChannel) supabase.removeChannel(formChannel);
             if (midnightTimer) clearTimeout(midnightTimer);
         };
     });
@@ -323,7 +360,7 @@
             <td style="${TD}">${esc(checkTimeStr)}</td>
             <td style="${TD_CAL}">${toHtmlLines(r.responseOver)}</td>
             <td style="${TD_CAL}">${toHtmlLines(resultStr)}</td>
-            <td style="${TD_CAL} text-align: center;">${toHtmlLines(r.notes)}</td>
+            <td style="${TD_CAL} text-align: left;">${toHtmlLines(r.notes)}</td>
         </tr>`;
         }).join('');
 
@@ -627,5 +664,21 @@
     <div class="overflow-x-auto rounded-xl shadow p-4" style="background-color: white; color: black;">
         {@html previewHtml}
     </div>
+    {/if}
+
+    <!-- 새로고침 알림 -->
+    {#if showRefreshAlert}
+        <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div class="alert alert-warning max-w-md shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                    <h3 class="font-bold">데이터가 변경되었습니다!</h3>
+                    <div class="text-sm">다른 사용자가 입력값을 변경했습니다.<br/>새로고침해주세요.</div>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick={handleRefresh}>새로고침</button>
+            </div>
+        </div>
     {/if}
 </div>
