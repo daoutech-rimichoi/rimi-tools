@@ -112,16 +112,30 @@
         info.environment = '';
     }
 
+    function getRedmineUrl(issue) {
+        const match = issue.match(/issue-(\d+)/i);
+        return match ? `https://task.daou.co.kr/issues/${match[1]}` : '';
+    }
+
     let inspectResult = $derived.by(() => {
         const body = inspectItems
             .filter((item) => item.issue.trim() !== '')
             .map((item) => {
-                const urls = item.infos
-                    .map((info) => getUrl(info))
-                    .filter((url) => url)
-                    .map((url) => `ㄴ ${url}`)
-                    .join('\n');
-                return `${item.issue.trim()}\n${urls}`;
+                const lines = [];
+                const redmineUrl = getRedmineUrl(item.issue);
+                if (redmineUrl) {
+                    lines.push(`ㄴ 일감: ${redmineUrl}`);
+                }
+                item.infos.forEach((info) => {
+                    const url = getUrl(info);
+                    if (!url) return;
+                    if (info.inspectType !== '직접입력' && info.service) {
+                        lines.push(`ㄴ ${info.service}: ${url}`);
+                    } else {
+                        lines.push(`ㄴ ${url}`);
+                    }
+                });
+                return `${item.issue.trim()}\n${lines.join('\n')}`;
             })
             .join('\n\n');
 
@@ -283,13 +297,37 @@
                                     <label class="label" for="peer-issue-{item.id}">
                                         <span class="label-text">일감</span>
                                     </label>
-                                    <input
-                                        id="peer-issue-{item.id}"
-                                        type="text"
-                                        class="input-bordered input w-full"
-                                        placeholder="[서비스] 제목 (일감)"
-                                        bind:value={item.issue}
-                                    />
+                                    <div class="flex items-center gap-2">
+                                        <input
+                                            id="peer-issue-{item.id}"
+                                            type="text"
+                                            class="input-bordered input flex-1"
+                                            placeholder="[서비스] 제목 (일감)"
+                                            bind:value={item.issue}
+                                        />
+                                        <a
+                                            href={getRedmineUrl(item.issue) || null}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="btn btn-xs btn-square btn-ghost {!getRedmineUrl(item.issue) ? 'btn-disabled' : ''}"
+                                            title="Redmine 링크 열기"
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                class="h-4 w-4"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                                />
+                                            </svg>
+                                        </a>
+                                    </div>
                                 </div>
                                 <div class="form-control mt-2 w-full">
                                     <label class="label" for="pr-{item.id}">
@@ -360,18 +398,48 @@
                                         >⠿</span>
                                         <span class="text-sm font-semibold text-base-content/60">#{index + 1}</span>
                                     </div>
+                                    {#if inspectItems.length > 1}
+                                        <button
+                                            class="btn btn-xs btn-outline btn-error"
+                                            onclick={() => removeInspectItem(item.id)}
+                                        >삭제</button>
+                                    {/if}
                                 </div>
                                 <div class="form-control w-full">
                                     <label class="label" for="inspect-issue-{item.id}">
                                         <span class="label-text">일감</span>
                                     </label>
-                                    <input
-                                        id="inspect-issue-{item.id}"
-                                        type="text"
-                                        class="input-bordered input w-full"
-                                        placeholder="[서비스] 제목 (일감)"
-                                        bind:value={item.issue}
-                                    />
+                                    <div class="flex items-center gap-2">
+                                        <input
+                                            id="inspect-issue-{item.id}"
+                                            type="text"
+                                            class="input-bordered input flex-1"
+                                            placeholder="[서비스] 제목 (일감)"
+                                            bind:value={item.issue}
+                                        />
+                                        <a
+                                            href={getRedmineUrl(item.issue) || null}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="btn btn-xs btn-square btn-ghost {!getRedmineUrl(item.issue) ? 'btn-disabled' : ''}"
+                                            title="Redmine 링크 열기"
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                class="h-4 w-4"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                                />
+                                            </svg>
+                                        </a>
+                                    </div>
                                 </div>
                                 <div class="form-control mt-2 w-full">
                                     <label class="label">
