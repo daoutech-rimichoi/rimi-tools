@@ -10,10 +10,14 @@ CREATE TABLE IF NOT EXISTS public.server_status (
     url TEXT NOT NULL DEFAULT '',
     in_use BOOLEAN DEFAULT false,
     assigned_to TEXT DEFAULT '',
+    remarks TEXT DEFAULT '',
     display_order INTEGER DEFAULT 0,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE(env_type, service_name, environment_name)
 );
+
+-- 1-1. 기존 테이블에 비고 컬럼 추가 (이미 테이블이 있는 경우)
+ALTER TABLE public.server_status ADD COLUMN IF NOT EXISTS remarks TEXT DEFAULT '';
 
 -- 2. Row Level Security (RLS) 설정 - 인증 없이 모두 접근 가능
 ALTER TABLE public.server_status ENABLE ROW LEVEL SECURITY;

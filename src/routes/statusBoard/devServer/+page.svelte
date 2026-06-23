@@ -10,13 +10,15 @@
     let isLoading = true;
     let toastMessage = '';
     let showToast = false;
+    let toastType = 'error'; // 'error' or 'success'
     let showRefreshAlert = false;
     let subscription = null;
     let lastSavedAt = null;
 
     // Toast 표시 함수
-    function showToastMessage(message) {
+    function showToastMessage(message, type = 'error') {
         toastMessage = message;
+        toastType = type;
         showToast = true;
         setTimeout(() => {
             showToast = false;
@@ -74,7 +76,7 @@
         try {
             const { data, error } = await supabase
                 .from('server_status')
-                .select('service_name, environment_name, url, in_use, assigned_to, updated_at, display_order')
+                .select('service_name, environment_name, url, in_use, assigned_to, remarks, updated_at, display_order')
                 .eq('env_type', 'dev')
                 .order('display_order', { ascending: true })
                 .order('service_name', { ascending: true })
@@ -107,6 +109,7 @@
                     serverStatus[key] = {
                         inUse: item.in_use,
                         assignedTo: item.assigned_to || '',
+                        remarks: item.remarks || '',
                         updatedAt: item.updated_at
                     };
                 });
@@ -127,7 +130,7 @@
     async function toggleInUse(serviceName, envName, event) {
         const key = getServerKey(serviceName, envName);
         if (!serverStatus[key]) {
-            serverStatus[key] = { inUse: false, assignedTo: '', updatedAt: null };
+            serverStatus[key] = { inUse: false, assignedTo: '', remarks: '', updatedAt: null };
         }
         
         // 사용중으로 변경하려고 할 때 사용자 선택 확인
@@ -139,21 +142,38 @@
         
         serverStatus[key].inUse = !serverStatus[key].inUse;
         
-        // 사용가능(false)으로 변경 시 사용자 리셋
+        // 사용가능(false)으로 변경 시 사용자/비고 리셋
         if (!serverStatus[key].inUse) {
             serverStatus[key].assignedTo = '';
+            serverStatus[key].remarks = '';
         }
-        
+
         serverStatus = { ...serverStatus };
-        
+
         // DB에 즉시 저장
         await saveToDb(serviceName, envName);
+    }
+
+    // 비고 입력값 변경 (로컬 상태만 갱신)
+    function updateRemarks(serviceName, envName, value) {
+        const key = getServerKey(serviceName, envName);
+        if (!serverStatus[key]) {
+            serverStatus[key] = { inUse: false, assignedTo: '', remarks: '', updatedAt: null };
+        }
+        serverStatus[key].remarks = value;
+        serverStatus = { ...serverStatus };
+    }
+
+    // 비고 저장 버튼
+    async function saveRemarks(serviceName, envName) {
+        await saveToDb(serviceName, envName);
+        showToastMessage('비고가 저장되었습니다.', 'success');
     }
 
     async function updateAssignedTo(serviceName, envName, user) {
         const key = getServerKey(serviceName, envName);
         if (!serverStatus[key]) {
-            serverStatus[key] = { inUse: false, assignedTo: '', updatedAt: null };
+            serverStatus[key] = { inUse: false, assignedTo: '', remarks: '', updatedAt: null };
         }
         serverStatus[key].assignedTo = user;
         
@@ -169,7 +189,7 @@
         lastSavedAt = Date.now();
         try {
             const key = getServerKey(serviceName, envName);
-            const status = serverStatus[key] || { inUse: false, assignedTo: '', updatedAt: null };
+            const status = serverStatus[key] || { inUse: false, assignedTo: '', remarks: '', updatedAt: null };
             const env = servers
                 .find(s => s.service === serviceName)
                 ?.environments.find(e => e.name === envName);
@@ -187,6 +207,7 @@
                     url: env.url,
                     in_use: status.inUse,
                     assigned_to: status.assignedTo,
+                    remarks: status.remarks,
                     updated_at: now
                 }, { onConflict: 'env_type,service_name,environment_name' });
 
@@ -230,14 +251,15 @@
                                     <tr>
                                         <th class="w-1/6">환경</th>
                                         <th class="w-1/4">사용자</th>
-                                        <th class="w-1/3">사용여부</th>
-                                        <th class="w-1/4">수정일</th>
+                                        <th class="w-px whitespace-nowrap">사용여부</th>
+                                        <th class="w-80">비고</th>
+                                        <th>수정일</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {#each service.environments as env}
                                         {@const key = getServerKey(service.service, env.name)}
-                                        {@const status = serverStatus[key] || { inUse: false, assignedTo: '', updatedAt: null }}
+                                        {@const status = serverStatus[key] || { inUse: false, assignedTo: '', remarks: '', updatedAt: null }}
                                         <tr>
                                             <td class="font-semibold">
                                                 {#if env.url}
@@ -279,7 +301,7 @@
                                                     {/each}
                                                 </select>
                                             </td>
-                                            <td>
+                                            <td class="whitespace-nowrap">
                                                 <input
                                                     type="checkbox"
                                                     class="toggle toggle-primary"
@@ -289,6 +311,28 @@
                                                 <span class="ml-2 {status.inUse ? 'text-primary font-semibold' : 'text-base-content/50'}">
                                                     {status.inUse ? '사용중' : '사용가능'}
                                                 </span>
+                                            </td>
+                                            <td class="whitespace-nowrap">
+                                                {#if status.inUse}
+                                                    <div class="flex items-center gap-2">
+                                                        <input
+                                                            type="text"
+                                                            class="input input-bordered input-sm w-64"
+                                                            placeholder="비고를 입력하세요"
+                                                            value={status.remarks}
+                                                            on:input={(e) => updateRemarks(service.service, env.name, e.target.value)}
+                                                            on:keydown={(e) => { if (e.key === 'Enter') saveRemarks(service.service, env.name); }}
+                                                        />
+                                                        <button
+                                                            class="btn btn-outline btn-primary btn-sm"
+                                                            on:click={() => saveRemarks(service.service, env.name)}
+                                                        >
+                                                            저장
+                                                        </button>
+                                                    </div>
+                                                {:else}
+                                                    <span class="text-base-content/30">-</span>
+                                                {/if}
                                             </td>
                                             <td class="text-sm text-base-content/70">
                                                 {#if status.updatedAt}
@@ -317,7 +361,7 @@
     <!-- Toast Notification -->
     {#if showToast}
         <div class="toast toast-top toast-end z-50">
-            <div class="alert alert-error">
+            <div class="alert alert-{toastType}">
                 <span>{toastMessage}</span>
             </div>
         </div>
