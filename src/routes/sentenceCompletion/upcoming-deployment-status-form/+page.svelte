@@ -38,6 +38,7 @@
     let pendingRows = $state([{id: crypto.randomUUID(), value: ''}]);
     let redmineRows = $state([{id: crypto.randomUUID(), status: '대기', service: '서비스선택', customService: '', redmine: ''}]);
     let scenarioRows = $state([{id: crypto.randomUUID(), status: '대기', type: '작업선택', customText: '', service: '서비스선택', customService: ''}]);
+    let deployOrderRows = $state([{id: crypto.randomUUID(), service: '서비스선택', customService: ''}]);
 
     let title = $state('');
     let isSaving = $state(false);
@@ -59,13 +60,15 @@
     let pendingEditing = $derived($editingUsers['pending']);
     let redmineEditing = $derived($editingUsers['redmine']);
     let scenarioEditing = $derived($editingUsers['scenario']);
-    
+    let deployOrderEditing = $derived($editingUsers['deployOrder']);
+
     // Total count of all editors across all sections
     let totalEditingCount = $derived(
-        (approvedEditing?.length || 0) + 
-        (pendingEditing?.length || 0) + 
-        (redmineEditing?.length || 0) + 
-        (scenarioEditing?.length || 0)
+        (approvedEditing?.length || 0) +
+        (pendingEditing?.length || 0) +
+        (redmineEditing?.length || 0) +
+        (scenarioEditing?.length || 0) +
+        (deployOrderEditing?.length || 0)
     );
 
     // 링크 추출 함수
@@ -112,7 +115,7 @@
             const {data, error} = await supabase
                 .from('deployment_form_data')
                 .select('key, value')
-                .in('key', ['deployment2_approved_rows', 'deployment2_pending_rows', 'deployment2_redmine_rows', 'deployment2_scenario_rows']);
+                .in('key', ['deployment2_approved_rows', 'deployment2_pending_rows', 'deployment2_redmine_rows', 'deployment2_scenario_rows', 'deployment2_deploy_order_rows']);
 
             if (error) {
                 console.error('Error loading data:', error);
@@ -157,6 +160,15 @@
                         } catch (e) {
                             console.error('Error parsing scenario rows:', e);
                         }
+                    } else if (item.key === 'deployment2_deploy_order_rows' && item.value) {
+                        try {
+                            const parsed = JSON.parse(item.value);
+                            if (Array.isArray(parsed) && parsed.length > 0) {
+                                deployOrderRows = parsed;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing deploy order rows:', e);
+                        }
                     }
                 });
             }
@@ -175,7 +187,8 @@
                 {key: 'deployment2_approved_rows', value: JSON.stringify(approvedRows), updated_at: new Date().toISOString()},
                 {key: 'deployment2_pending_rows', value: JSON.stringify(pendingRows), updated_at: new Date().toISOString()},
                 {key: 'deployment2_redmine_rows', value: JSON.stringify(redmineRows), updated_at: new Date().toISOString()},
-                {key: 'deployment2_scenario_rows', value: JSON.stringify(scenarioRows), updated_at: new Date().toISOString()}
+                {key: 'deployment2_scenario_rows', value: JSON.stringify(scenarioRows), updated_at: new Date().toISOString()},
+                {key: 'deployment2_deploy_order_rows', value: JSON.stringify(deployOrderRows), updated_at: new Date().toISOString()}
             ];
 
             const {error} = await supabase
@@ -204,13 +217,15 @@
                 pendingRows = [{id: crypto.randomUUID(), value: ''}];
                 redmineRows = [{id: crypto.randomUUID(), status: '대기', service: '서비스선택', customService: '', redmine: ''}];
                 scenarioRows = [{id: crypto.randomUUID(), status: '대기', type: '작업선택', customText: '', service: '서비스선택', customService: ''}];
+                deployOrderRows = [{id: crypto.randomUUID(), service: '서비스선택', customService: ''}];
 
                 // DB에 초기화된 데이터 저장
                 const updates = [
                     {key: 'deployment2_approved_rows', value: JSON.stringify(approvedRows), updated_at: new Date().toISOString()},
                     {key: 'deployment2_pending_rows', value: JSON.stringify(pendingRows), updated_at: new Date().toISOString()},
                     {key: 'deployment2_redmine_rows', value: JSON.stringify(redmineRows), updated_at: new Date().toISOString()},
-                    {key: 'deployment2_scenario_rows', value: JSON.stringify(scenarioRows), updated_at: new Date().toISOString()}
+                    {key: 'deployment2_scenario_rows', value: JSON.stringify(scenarioRows), updated_at: new Date().toISOString()},
+                    {key: 'deployment2_deploy_order_rows', value: JSON.stringify(deployOrderRows), updated_at: new Date().toISOString()}
                 ];
 
                 const {error} = await supabase
@@ -258,6 +273,25 @@
         scenarioRows = scenarioRows.filter(row => row.id !== id);
         if (scenarioRows.length === 0) {
             scenarioRows = [{id: crypto.randomUUID(), status: '대기', type: '작업선택', customText: '', service: '서비스선택', customService: ''}];
+        }
+    }
+
+    function addDeployOrderRow() {
+        deployOrderRows = [...deployOrderRows, {id: crypto.randomUUID(), service: '서비스선택', customService: ''}];
+    }
+
+    function removeDeployOrderRow(id) {
+        deployOrderRows = deployOrderRows.filter(row => row.id !== id);
+        if (deployOrderRows.length === 0) {
+            deployOrderRows = [{id: crypto.randomUUID(), service: '서비스선택', customService: ''}];
+        }
+    }
+
+    // 서비스 선택 시 마지막 행이면 자동으로 빈 선택박스 한 줄 추가
+    function handleDeployOrderChange(row, index) {
+        if (row.service === '서비스선택') return;
+        if (index === deployOrderRows.length - 1) {
+            deployOrderRows = [...deployOrderRows, {id: crypto.randomUUID(), service: '서비스선택', customService: ''}];
         }
     }
 
@@ -314,6 +348,9 @@
         } else if (listName === 'scenario') {
             rows = scenarioRows;
             setRows = v => scenarioRows = v;
+        } else if (listName === 'deployOrder') {
+            rows = deployOrderRows;
+            setRows = v => deployOrderRows = v;
         }
 
         const newRows = [...rows];
@@ -352,7 +389,7 @@
                     event: '*',
                     schema: 'public',
                     table: 'deployment_form_data',
-                    filter: 'key=in.(deployment2_approved_rows,deployment2_pending_rows,deployment2_redmine_rows,deployment2_scenario_rows)'
+                    filter: 'key=in.(deployment2_approved_rows,deployment2_pending_rows,deployment2_redmine_rows,deployment2_scenario_rows,deployment2_deploy_order_rows)'
                 },
                 (payload) => {
                     if (payload.new) {
@@ -376,6 +413,11 @@
                             try {
                                 const parsed = JSON.parse(value);
                                 if (Array.isArray(parsed)) scenarioRows = parsed;
+                            } catch (e) {}
+                        } else if (key === 'deployment2_deploy_order_rows' && value) {
+                            try {
+                                const parsed = JSON.parse(value);
+                                if (Array.isArray(parsed)) deployOrderRows = parsed;
                             } catch (e) {}
                         }
                     }
@@ -436,6 +478,14 @@
             .join('\n');
     }
 
+    // 배포순서 — 선택된 서비스들을 화살표로 연결 (예: 비즈뿌리오 웹 -> 영업관리시스템 웹)
+    function formatDeployOrderToList(rows) {
+        return rows
+            .map(row => row.service === '직접입력' ? (row.customService || '').trim() : row.service)
+            .filter(name => name && name !== '서비스선택')
+            .join(' -> ');
+    }
+
     // 라인 수 계산 함수
     function countFilledRows(rows) {
         return rows.filter(row => row.value && row.value.trim() !== '').length;
@@ -453,12 +503,14 @@
     let formattedPending = $derived(formatRowsToList(pendingRows));
     let formattedRedmine = $derived(formatRedmineRowsToList(redmineRows));
     let formattedScenario = $derived(formatScenarioRowsToList(scenarioRows));
+    let formattedDeployOrder = $derived(formatDeployOrderToList(deployOrderRows));
 
     let sections = $derived([
         {title: `■ 승인 완료 (${approvedCount}건)`, content: formattedApproved},
         {title: `■ 승인 대기 (${pendingCount}건)`, content: formattedPending},
         {title: '※ 배포 요청 Redmine', content: formattedRedmine},
-        {title: '※ 비고', content: formattedScenario}
+        {title: '※ 비고', content: formattedScenario},
+        {title: '※ 배포순서', content: formattedDeployOrder}
     ]);
 
     let output = $derived([
@@ -914,6 +966,60 @@
                                         onclick={() => removeScenarioRow(row.id)}
                                         onfocus={() => setEditing('scenario')}
                                         onblur={() => clearEditing('scenario')}
+                                        class="btn btn-xs btn-outline btn-error"
+                                    >삭제</button>
+                                </div>
+                            {/each}
+                        </div>
+                    </div>
+
+                    <!-- 배포순서 섹션 -->
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">※ 배포순서</span>
+                            <button onclick={addDeployOrderRow} class="btn btn-xs btn-outline btn-primary mb-1">+ 추가</button>
+                        </label>
+                        <div class="space-y-2">
+                            {#each deployOrderRows as row, index (row.id)}
+                                <div
+                                    class="flex gap-1 items-center"
+                                    ondragover={handleDragOver}
+                                    ondrop={(e) => handleDrop(e, index, 'deployOrder')}
+                                >
+                                    <span
+                                        role="button"
+                                        tabindex="0"
+                                        class="text-base-content/40 select-none cursor-move"
+                                        draggable="true"
+                                        ondragstart={(e) => handleDragStart(e, index, 'deployOrder')}
+                                        ondragend={handleDragEnd}
+                                    >⠿</span>
+                                    <span class="text-base-content/50 text-sm w-6 text-center select-none">{index + 1}</span>
+                                    <select
+                                        bind:value={row.service}
+                                        onchange={() => handleDeployOrderChange(row, index)}
+                                        onfocus={() => setEditing('deployOrder')}
+                                        onblur={() => clearEditing('deployOrder')}
+                                        class="select select-bordered flex-1"
+                                    >
+                                        {#each serviceOptions as option}
+                                            <option value={option}>{option}</option>
+                                        {/each}
+                                    </select>
+                                    {#if row.service === '직접입력'}
+                                        <input
+                                            type="text"
+                                            bind:value={row.customService}
+                                            class="input input-bordered w-44"
+                                            placeholder="서비스명"
+                                            onfocus={() => setEditing('deployOrder')}
+                                            onblur={() => clearEditing('deployOrder')}
+                                        />
+                                    {/if}
+                                    <button
+                                        onclick={() => removeDeployOrderRow(row.id)}
+                                        onfocus={() => setEditing('deployOrder')}
+                                        onblur={() => clearEditing('deployOrder')}
                                         class="btn btn-xs btn-outline btn-error"
                                     >삭제</button>
                                 </div>
