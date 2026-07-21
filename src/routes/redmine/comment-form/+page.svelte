@@ -2,6 +2,7 @@
     import {SvelteDate} from 'svelte/reactivity';
     import HtmlPreviewModal from '$lib/components/HtmlPreviewModal.svelte';
     import {copyToClipboard} from '$lib/utils/clipboard.js';
+    import {toServiceName} from '$lib/utils/serviceName.js';
 
     // --- State for "개발 승인 요청" ---
     let devEffort = 1;
@@ -78,8 +79,8 @@ ${formattedDetailedEffort}</p>
             try {
                 const url = new URL(line.trim());
                 const pathParts = url.pathname.split('/').filter(Boolean);
-                const serviceName = pathParts.length >= 4 ? pathParts[3] : '서비스명';
-                return `&nbsp;&nbsp;ㄴ ${serviceName}: ${line.trim()}`;
+                const repoName = pathParts.length >= 4 ? pathParts[3] : '서비스명';
+                return `&nbsp;&nbsp;ㄴ ${toServiceName(repoName)}: ${line.trim()}`;
             } catch {
                 return `&nbsp;&nbsp;ㄴ Invalid URL: ${line.trim()}`;
             }

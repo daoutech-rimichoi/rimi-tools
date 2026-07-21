@@ -2,6 +2,7 @@
     import {onMount} from 'svelte';
     import {browser} from '$app/environment';
     import {copyToClipboard} from '$lib/utils/clipboard.js';
+    import {toServiceName} from '$lib/utils/serviceName.js';
     import {supabase} from '$lib/supabaseClient.js';
 
     const STORAGE_KEY_PEER = 'messenger-form-peer-items';
@@ -36,7 +37,7 @@
                     const url = new URL(line.trim());
                     const pathParts = url.pathname.split('/').filter(Boolean);
                     const repoName = pathParts.length >= 4 ? pathParts[3] : '서비스명';
-                    return `- ${repoName}: ${line.trim()}`;
+                    return `- ${toServiceName(repoName)}: ${line.trim()}`;
                 } catch {
                     return `- ${line.trim()}`;
                 }
