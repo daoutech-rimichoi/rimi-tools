@@ -10,12 +10,12 @@ export const repoServiceNameMap = {
     // 비즈뿌리오
     'bizweb': '비즈뿌리오 웹',
     'bizBatchApi': '비즈뿌리오 발송 배치',
-    'kapi': 'KAPI',
-    'napi': 'NAPI',
-    'rapi': 'RAPI',
+    'bizexternalapi': 'KAPI',
+    'web-napi': 'NAPI',
+    'bizexternalrcsapi': 'RAPI',
     'web-fax-daemon': '팩스 발송 데몬',
     'web-fax-forward-daemon': '팩스 포워드 데몬',
-    'ivr': '080수신거부시나리오',
+    'ivr-scenario-web': '080수신거부시나리오',
     // JavaASP
     'asp': 'JavaASP 웹',
     'asp-admin': 'JavaASP 중간 관리자 웹',
@@ -33,7 +33,7 @@ export const repoServiceNameMap = {
     'daemon-monitor': 'JavaASP 데몬 모니터링',
     'faxBridge': 'JavaASP 팩스 브릿지',
     // 유핏
-    'ufit-web': '유핏 웹',
+    'ufit': '유핏 웹',
     'ufit-bill-batch': '유핏 정산 배치',
     // 번호자원관리시스템
     'numball-api': '번호자원관리시스템'
