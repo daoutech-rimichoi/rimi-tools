@@ -4,7 +4,8 @@
 -- 1. 테이블 생성 (신규 설치)
 CREATE TABLE IF NOT EXISTS public.quick_links (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    group_name TEXT,                 -- 그룹명 (비우면 사이드바에 '단독' 버튼으로 표시)
+    group_name TEXT,                 -- 1단 그룹명 (비우면 사이드바에 '단독' 버튼으로 표시)
+    sub_group_name TEXT,             -- 2단 서브그룹명 (비우면 그룹 직속 링크. group_name 이 비면 무시됨)
     name TEXT NOT NULL,
     path TEXT NOT NULL,
     display_order INTEGER DEFAULT 0,
@@ -13,6 +14,7 @@ CREATE TABLE IF NOT EXISTS public.quick_links (
 
 -- 1-1. 기존 설치 대상 컬럼 추가 (이미 quick_links 가 있는 경우)
 ALTER TABLE public.quick_links ADD COLUMN IF NOT EXISTS group_name TEXT;
+ALTER TABLE public.quick_links ADD COLUMN IF NOT EXISTS sub_group_name TEXT;
 
 -- 2. RLS 설정
 ALTER TABLE public.quick_links ENABLE ROW LEVEL SECURITY;
