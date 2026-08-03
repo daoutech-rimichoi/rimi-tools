@@ -1,535 +1,526 @@
 <script>
-    import {onMount} from 'svelte';
-    import {browser} from '$app/environment';
-    import {copyToClipboard} from '$lib/utils/clipboard.js';
-    import {toServiceName} from '$lib/utils/serviceName.js';
-    import {supabase} from '$lib/supabaseClient.js';
+	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
+	import ResultPanel from '$lib/components/ResultPanel.svelte';
+	import { toServiceName } from '$lib/utils/serviceName.js';
+	import { supabase } from '$lib/supabaseClient.js';
+	import ToolPage from '$lib/components/ToolPage.svelte';
 
-    const STORAGE_KEY_PEER = 'messenger-form-peer-items';
-    const STORAGE_KEY_INSPECT = 'messenger-form-inspect-items';
+	const STORAGE_KEY_PEER = 'messenger-form-peer-items';
+	const STORAGE_KEY_INSPECT = 'messenger-form-inspect-items';
 
-    function defaultPeerItem() {
-        return {id: crypto.randomUUID(), issue: '', prLinks: ''};
-    }
+	function defaultPeerItem() {
+		return { id: crypto.randomUUID(), issue: '', prLinks: '' };
+	}
 
+	// --- 동료검토 요청 ---
+	let peerItems = $state([defaultPeerItem()]);
 
-    // --- 동료검토 요청 ---
-    let peerItems = $state([defaultPeerItem()]);
+	function addPeerItem() {
+		peerItems = [...peerItems, defaultPeerItem()];
+	}
 
-    function addPeerItem() {
-        peerItems = [...peerItems, defaultPeerItem()];
-    }
+	function resetPeerItems() {
+		peerItems = [defaultPeerItem()];
+	}
 
-    function resetPeerItems() {
-        peerItems = [defaultPeerItem()];
-    }
+	function removePeerItem(id) {
+		peerItems = peerItems.filter((item) => item.id !== id);
+	}
 
-    function removePeerItem(id) {
-        peerItems = peerItems.filter((item) => item.id !== id);
-    }
+	function parsePrLines(prLinks) {
+		return prLinks
+			.split('\n')
+			.filter((line) => line.trim() !== '')
+			.map((line) => {
+				try {
+					const url = new URL(line.trim());
+					const pathParts = url.pathname.split('/').filter(Boolean);
+					const repoName = pathParts.length >= 4 ? pathParts[3] : '서비스명';
+					return `- ${toServiceName(repoName)}: ${line.trim()}`;
+				} catch {
+					return `- ${line.trim()}`;
+				}
+			})
+			.join('\n');
+	}
 
-    function parsePrLines(prLinks) {
-        return prLinks
-            .split('\n')
-            .filter((line) => line.trim() !== '')
-            .map((line) => {
-                try {
-                    const url = new URL(line.trim());
-                    const pathParts = url.pathname.split('/').filter(Boolean);
-                    const repoName = pathParts.length >= 4 ? pathParts[3] : '서비스명';
-                    return `- ${toServiceName(repoName)}: ${line.trim()}`;
-                } catch {
-                    return `- ${line.trim()}`;
-                }
-            })
-            .join('\n');
-    }
+	let peerReviewResult = $derived.by(() => {
+		const body = peerItems
+			.filter((item) => item.issue.trim() !== '' || item.prLinks.trim() !== '')
+			.map((item) => {
+				const prSection = parsePrLines(item.prLinks);
+				return `${item.issue.trim()}\n${prSection}`;
+			})
+			.join('\n\n');
 
-    let peerReviewResult = $derived.by(() => {
-        const body = peerItems
-            .filter((item) => item.issue.trim() !== '' || item.prLinks.trim() !== '')
-            .map((item) => {
-                const prSection = parsePrLines(item.prLinks);
-                return `${item.issue.trim()}\n${prSection}`;
-            })
-            .join('\n\n');
+		return `아래 내용으로 동료검토 요청드립니다.\n\n${body}\n\n감사합니다.`;
+	});
 
-        return `아래 내용으로 동료검토 요청드립니다.\n\n${body}\n\n감사합니다.`;
-    });
+	// --- 검수 요청 ---
+	let devServers = $state([]);
+	let stgServers = $state([]);
+	let isLoadingServers = $state(true);
 
-    // --- 검수 요청 ---
-    let devServers = $state([]);
-    let stgServers = $state([]);
-    let isLoadingServers = $state(true);
+	function defaultInspectInfo() {
+		return {
+			id: crypto.randomUUID(),
+			inspectType: '',
+			service: '',
+			environment: '',
+			customUrl: ''
+		};
+	}
 
-    function defaultInspectInfo() {
-        return {id: crypto.randomUUID(), inspectType: '', service: '', environment: '', customUrl: ''};
-    }
+	let inspectItems = $state([
+		{ id: crypto.randomUUID(), issue: '', infos: [defaultInspectInfo()] }
+	]);
 
-    let inspectItems = $state([{id: crypto.randomUUID(), issue: '', infos: [defaultInspectInfo()]}]);
+	function addInspectItem() {
+		inspectItems = [
+			...inspectItems,
+			{ id: crypto.randomUUID(), issue: '', infos: [defaultInspectInfo()] }
+		];
+	}
 
-    function addInspectItem() {
-        inspectItems = [...inspectItems, {id: crypto.randomUUID(), issue: '', infos: [defaultInspectInfo()]}];
-    }
+	function resetInspectItems() {
+		inspectItems = [{ id: crypto.randomUUID(), issue: '', infos: [defaultInspectInfo()] }];
+	}
 
-    function resetInspectItems() {
-        inspectItems = [{id: crypto.randomUUID(), issue: '', infos: [defaultInspectInfo()]}];
-    }
+	function removeInspectItem(id) {
+		inspectItems = inspectItems.filter((item) => item.id !== id);
+	}
 
-    function removeInspectItem(id) {
-        inspectItems = inspectItems.filter((item) => item.id !== id);
-    }
+	function addInspectInfo(item) {
+		item.infos = [...item.infos, defaultInspectInfo()];
+	}
 
-    function addInspectInfo(item) {
-        item.infos = [...item.infos, defaultInspectInfo()];
-    }
+	function removeInspectInfo(item, infoId) {
+		item.infos = item.infos.filter((info) => info.id !== infoId);
+	}
 
-    function removeInspectInfo(item, infoId) {
-        item.infos = item.infos.filter((info) => info.id !== infoId);
-    }
+	function getServersForType(type) {
+		if (type === '개발장비') return devServers;
+		if (type === '검수장비') return stgServers;
+		return [];
+	}
 
-    function getServersForType(type) {
-        if (type === '개발장비') return devServers;
-        if (type === '검수장비') return stgServers;
-        return [];
-    }
+	function getEnvironments(info) {
+		return (
+			getServersForType(info.inspectType).find((s) => s.service === info.service)?.environments ??
+			[]
+		);
+	}
 
-    function getEnvironments(info) {
-        return getServersForType(info.inspectType).find((s) => s.service === info.service)?.environments ?? [];
-    }
+	function getUrl(info) {
+		if (info.inspectType === '직접입력') return info.customUrl;
+		return getEnvironments(info).find((e) => e.name === info.environment)?.url ?? '';
+	}
 
-    function getUrl(info) {
-        if (info.inspectType === '직접입력') return info.customUrl;
-        return getEnvironments(info).find((e) => e.name === info.environment)?.url ?? '';
-    }
+	function onInspectTypeChange(info) {
+		info.service = '';
+		info.environment = '';
+		info.customUrl = '';
+	}
 
-    function onInspectTypeChange(info) {
-        info.service = '';
-        info.environment = '';
-        info.customUrl = '';
-    }
+	function onServiceChange(info) {
+		info.environment = '';
+	}
 
-    function onServiceChange(info) {
-        info.environment = '';
-    }
+	function getRedmineUrl(issue) {
+		const match = issue.match(/issue-(\d+)/i);
+		return match ? `https://task.daou.co.kr/issues/${match[1]}` : '';
+	}
 
-    function getRedmineUrl(issue) {
-        const match = issue.match(/issue-(\d+)/i);
-        return match ? `https://task.daou.co.kr/issues/${match[1]}` : '';
-    }
+	let inspectResult = $derived.by(() => {
+		const body = inspectItems
+			.filter((item) => item.issue.trim() !== '')
+			.map((item) => {
+				const lines = [];
+				const redmineUrl = getRedmineUrl(item.issue);
+				if (redmineUrl) {
+					lines.push(`ㄴ 일감: ${redmineUrl}`);
+				}
+				item.infos.forEach((info) => {
+					const url = getUrl(info);
+					if (!url) return;
+					if (info.inspectType !== '직접입력' && info.service) {
+						lines.push(`ㄴ ${info.service}: ${url}`);
+					} else {
+						lines.push(`ㄴ ${url}`);
+					}
+				});
+				return `${item.issue.trim()}\n${lines.join('\n')}`;
+			})
+			.join('\n\n');
 
-    let inspectResult = $derived.by(() => {
-        const body = inspectItems
-            .filter((item) => item.issue.trim() !== '')
-            .map((item) => {
-                const lines = [];
-                const redmineUrl = getRedmineUrl(item.issue);
-                if (redmineUrl) {
-                    lines.push(`ㄴ 일감: ${redmineUrl}`);
-                }
-                item.infos.forEach((info) => {
-                    const url = getUrl(info);
-                    if (!url) return;
-                    if (info.inspectType !== '직접입력' && info.service) {
-                        lines.push(`ㄴ ${info.service}: ${url}`);
-                    } else {
-                        lines.push(`ㄴ ${url}`);
-                    }
-                });
-                return `${item.issue.trim()}\n${lines.join('\n')}`;
-            })
-            .join('\n\n');
+		return `[검수 요청]\n아래 개발 건 검수 요청드립니다.\n\n${body}\n\n감사합니다.`;
+	});
 
-        return `[검수 요청]\n아래 개발 건 검수 요청드립니다.\n\n${body}\n\n감사합니다.`;
-    });
+	// --- 드래그앤드롭 ---
+	let draggedItem = $state(null);
+	let draggedFrom = $state(null);
 
-    // --- 드래그앤드롭 ---
-    let draggedItem = $state(null);
-    let draggedFrom = $state(null);
+	function handleDragStart(e, index, listName) {
+		draggedItem = index;
+		draggedFrom = listName;
+		e.dataTransfer.effectAllowed = 'move';
+		e.target.classList.add('opacity-50');
+	}
 
-    function handleDragStart(e, index, listName) {
-        draggedItem = index;
-        draggedFrom = listName;
-        e.dataTransfer.effectAllowed = 'move';
-        e.target.classList.add('opacity-50');
-    }
+	function handleDragEnd(e) {
+		e.target.classList.remove('opacity-50');
+		draggedItem = null;
+		draggedFrom = null;
+	}
 
-    function handleDragEnd(e) {
-        e.target.classList.remove('opacity-50');
-        draggedItem = null;
-        draggedFrom = null;
-    }
+	function handleDragOver(e) {
+		e.preventDefault();
+		e.dataTransfer.dropEffect = 'move';
+	}
 
-    function handleDragOver(e) {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-    }
+	function handleDrop(e, targetIndex, listName) {
+		e.preventDefault();
+		if (draggedFrom !== listName || draggedItem === null) return;
 
-    function handleDrop(e, targetIndex, listName) {
-        e.preventDefault();
-        if (draggedFrom !== listName || draggedItem === null) return;
+		let rows, setRows;
+		if (listName === 'peer') {
+			rows = peerItems;
+			setRows = (v) => (peerItems = v);
+		} else if (listName === 'inspect') {
+			rows = inspectItems;
+			setRows = (v) => (inspectItems = v);
+		}
 
-        let rows, setRows;
-        if (listName === 'peer') {
-            rows = peerItems;
-            setRows = (v) => (peerItems = v);
-        } else if (listName === 'inspect') {
-            rows = inspectItems;
-            setRows = (v) => (inspectItems = v);
-        }
+		const newRows = [...rows];
+		const [removed] = newRows.splice(draggedItem, 1);
+		newRows.splice(targetIndex, 0, removed);
+		setRows(newRows);
 
-        const newRows = [...rows];
-        const [removed] = newRows.splice(draggedItem, 1);
-        newRows.splice(targetIndex, 0, removed);
-        setRows(newRows);
+		draggedItem = null;
+		draggedFrom = null;
+	}
 
-        draggedItem = null;
-        draggedFrom = null;
-    }
+	// --- localStorage 저장 ---
+	let initialized = $state(false);
 
-    // --- localStorage 저장 ---
-    let initialized = $state(false);
+	$effect(() => {
+		if (browser && initialized) {
+			localStorage.setItem(STORAGE_KEY_PEER, JSON.stringify(peerItems));
+		}
+	});
 
-    $effect(() => {
-        if (browser && initialized) {
-            localStorage.setItem(STORAGE_KEY_PEER, JSON.stringify(peerItems));
-        }
-    });
+	$effect(() => {
+		if (browser && initialized) {
+			localStorage.setItem(STORAGE_KEY_INSPECT, JSON.stringify(inspectItems));
+		}
+	});
 
-    $effect(() => {
-        if (browser && initialized) {
-            localStorage.setItem(STORAGE_KEY_INSPECT, JSON.stringify(inspectItems));
-        }
-    });
+	onMount(async () => {
+		// localStorage 복원 후 저장 활성화
+		try {
+			const savedPeer = localStorage.getItem(STORAGE_KEY_PEER);
+			if (savedPeer) peerItems = JSON.parse(savedPeer);
 
-    onMount(async () => {
-        // localStorage 복원 후 저장 활성화
-        try {
-            const savedPeer = localStorage.getItem(STORAGE_KEY_PEER);
-            if (savedPeer) peerItems = JSON.parse(savedPeer);
+			const savedInspect = localStorage.getItem(STORAGE_KEY_INSPECT);
+			if (savedInspect) {
+				const parsed = JSON.parse(savedInspect);
+				inspectItems = parsed.map((item) => ({
+					id: item.id ?? crypto.randomUUID(),
+					issue: item.issue ?? '',
+					infos: Array.isArray(item.infos) ? item.infos : [defaultInspectInfo()]
+				}));
+			}
+		} catch {
+			// 복원 실패 시 기본값 유지
+		}
+		initialized = true;
 
-            const savedInspect = localStorage.getItem(STORAGE_KEY_INSPECT);
-            if (savedInspect) {
-                const parsed = JSON.parse(savedInspect);
-                inspectItems = parsed.map((item) => ({
-                    id: item.id ?? crypto.randomUUID(),
-                    issue: item.issue ?? '',
-                    infos: Array.isArray(item.infos) ? item.infos : [defaultInspectInfo()],
-                }));
-            }
-        } catch {
-            // 복원 실패 시 기본값 유지
-        }
-        initialized = true;
+		// 서버 데이터 로드
+		try {
+			const { data, error } = await supabase
+				.from('server_status')
+				.select('service_name, environment_name, url, env_type, display_order')
+				.in('env_type', ['dev', 'stg'])
+				.order('display_order', { ascending: true })
+				.order('service_name', { ascending: true })
+				.order('environment_name', { ascending: true });
 
-        // 서버 데이터 로드
-        try {
-            const {data, error} = await supabase
-                .from('server_status')
-                .select('service_name, environment_name, url, env_type, display_order')
-                .in('env_type', ['dev', 'stg'])
-                .order('display_order', {ascending: true})
-                .order('service_name', {ascending: true})
-                .order('environment_name', {ascending: true});
-
-            if (!error && data) {
-                const buildList = (rows) => {
-                    const map = new Map();
-                    rows.forEach((item) => {
-                        if (!item.url) return;
-                        if (!map.has(item.service_name)) map.set(item.service_name, []);
-                        map.get(item.service_name).push({name: item.environment_name, url: item.url});
-                    });
-                    return Array.from(map.entries()).map(([service, environments]) => ({service, environments}));
-                };
-                devServers = buildList(data.filter((d) => d.env_type === 'dev'));
-                stgServers = buildList(data.filter((d) => d.env_type === 'stg'));
-            }
-        } finally {
-            isLoadingServers = false;
-        }
-    });
+			if (!error && data) {
+				const buildList = (rows) => {
+					// 문자열 키 객체는 삽입 순서를 유지하므로 정렬 순서가 그대로 보존된다
+					const byService = {};
+					for (const item of rows) {
+						if (!item.url) continue;
+						(byService[item.service_name] ??= []).push({
+							name: item.environment_name,
+							url: item.url
+						});
+					}
+					return Object.entries(byService).map(([service, environments]) => ({
+						service,
+						environments
+					}));
+				};
+				devServers = buildList(data.filter((d) => d.env_type === 'dev'));
+				stgServers = buildList(data.filter((d) => d.env_type === 'stg'));
+			}
+		} finally {
+			isLoadingServers = false;
+		}
+	});
 </script>
 
-<div class="container mx-auto p-4">
-    <div class="mb-8 rounded-xl bg-neutral py-5 text-center shadow">
-        <h1 class="text-2xl font-bold text-neutral-content">메신저 문구 양식</h1>
-    </div>
-    <div class="space-y-12">
-    <!-- 동료검토 요청 -->
-    <div>
-        <h1 class="mb-4 text-2xl font-bold">동료검토 요청</h1>
-        <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
-            <!-- 입력 -->
-            <div class="card bg-base-100 shadow-xl">
-                <div class="card-body">
-                    <div class="mb-2 flex items-center justify-between">
-                        <h2 class="card-title">입력</h2>
-                        <div class="flex gap-1">
-                            <button class="btn btn-xs btn-error" onclick={resetPeerItems}>초기화</button>
-                            <button class="btn btn-xs btn-outline btn-primary" onclick={addPeerItem}>+ 추가</button>
-                        </div>
-                    </div>
-                    <div class="flex flex-col gap-4">
-                        {#each peerItems as item, index (item.id)}
-                            <div
-                                class="rounded-box border border-base-300 p-4"
-                                ondragover={handleDragOver}
-                                ondrop={(e) => handleDrop(e, index, 'peer')}
-                            >
-                                <div class="mb-2 flex items-center justify-between">
-                                    <div class="flex items-center gap-2">
-                                        <span
-                                            class="cursor-move select-none text-base-content/40"
-                                            draggable="true"
-                                            ondragstart={(e) => handleDragStart(e, index, 'peer')}
-                                            ondragend={handleDragEnd}
-                                        >⠿</span>
-                                        <span class="text-sm font-semibold text-base-content/60">#{index + 1}</span>
-                                    </div>
-                                    {#if peerItems.length > 1}
-                                        <button
-                                            class="btn btn-xs btn-outline btn-error"
-                                            onclick={() => removePeerItem(item.id)}
-                                        >삭제</button>
-                                    {/if}
-                                </div>
-                                <div class="form-control w-full">
-                                    <label class="label" for="peer-issue-{item.id}">
-                                        <span class="label-text">일감</span>
-                                    </label>
-                                    <div class="flex items-center gap-2">
-                                        <input
-                                            id="peer-issue-{item.id}"
-                                            type="text"
-                                            class="input-bordered input flex-1"
-                                            placeholder="[서비스] 제목 (일감)"
-                                            bind:value={item.issue}
-                                        />
-                                        <a
-                                            href={getRedmineUrl(item.issue) || null}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            class="btn btn-xs btn-square btn-ghost {!getRedmineUrl(item.issue) ? 'btn-disabled' : ''}"
-                                            title="Redmine 링크 열기"
-                                        >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                class="h-4 w-4"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                            >
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                                                />
-                                            </svg>
-                                        </a>
-                                    </div>
-                                </div>
-                                <div class="form-control mt-2 w-full">
-                                    <label class="label" for="pr-{item.id}">
-                                        <span class="label-text">PR 링크 (한 줄에 하나씩)</span>
-                                    </label>
-                                    <textarea
-                                        id="pr-{item.id}"
-                                        class="textarea-bordered textarea h-24 w-full"
-                                        placeholder="https://repo.daou.co.kr/projects/BIZ/repos/bizweb/pull-requests/1304/overview"
-                                        bind:value={item.prLinks}
-                                    ></textarea>
-                                </div>
-                            </div>
-                        {/each}
-                    </div>
-                </div>
-            </div>
+<ToolPage>
+	<div class="space-y-12">
+		<!-- 동료검토 요청 -->
+		<div>
+			<h1 class="mb-4 text-2xl font-bold">동료검토 요청</h1>
+			<div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+				<!-- 입력 -->
+				<div class="card bg-base-100 shadow-xl">
+					<div class="card-body">
+						<div class="mb-2 flex items-center justify-between">
+							<h2 class="card-title">입력</h2>
+							<div class="flex gap-1">
+								<button class="btn btn-error btn-xs" onclick={resetPeerItems}>초기화</button>
+								<button class="btn btn-outline btn-primary btn-xs" onclick={addPeerItem}
+									>+ 추가</button
+								>
+							</div>
+						</div>
+						<div class="flex flex-col gap-4">
+							{#each peerItems as item, index (item.id)}
+								<div
+									class="rounded-box border border-base-300 p-4"
+									ondragover={handleDragOver}
+									ondrop={(e) => handleDrop(e, index, 'peer')}
+								>
+									<div class="mb-2 flex items-center justify-between">
+										<div class="flex items-center gap-2">
+											<span
+												class="cursor-move text-base-content/40 select-none"
+												draggable="true"
+												ondragstart={(e) => handleDragStart(e, index, 'peer')}
+												ondragend={handleDragEnd}>⠿</span
+											>
+											<span class="text-sm font-semibold text-base-content/60">#{index + 1}</span>
+										</div>
+										{#if peerItems.length > 1}
+											<button
+												class="btn btn-outline btn-error btn-xs"
+												onclick={() => removePeerItem(item.id)}>삭제</button
+											>
+										{/if}
+									</div>
+									<div class="form-control w-full">
+										<label class="label" for="peer-issue-{item.id}">
+											<span class="label-text">일감</span>
+										</label>
+										<div class="flex items-center gap-2">
+											<input
+												id="peer-issue-{item.id}"
+												type="text"
+												class="input-bordered input flex-1"
+												placeholder="[서비스] 제목 (일감)"
+												bind:value={item.issue}
+											/>
+											<a
+												href={getRedmineUrl(item.issue) || null}
+												target="_blank"
+												rel="noopener noreferrer"
+												class="btn btn-square btn-ghost btn-xs {!getRedmineUrl(item.issue)
+													? 'btn-disabled'
+													: ''}"
+												title="Redmine 링크 열기"
+											>
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													class="h-4 w-4"
+													fill="none"
+													viewBox="0 0 24 24"
+													stroke="currentColor"
+												>
+													<path
+														stroke-linecap="round"
+														stroke-linejoin="round"
+														stroke-width="2"
+														d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+													/>
+												</svg>
+											</a>
+										</div>
+									</div>
+									<div class="form-control mt-2 w-full">
+										<label class="label" for="pr-{item.id}">
+											<span class="label-text">PR 링크 (한 줄에 하나씩)</span>
+										</label>
+										<textarea
+											id="pr-{item.id}"
+											class="textarea-bordered textarea h-24 w-full"
+											placeholder="https://repo.daou.co.kr/projects/BIZ/repos/bizweb/pull-requests/1304/overview"
+											bind:value={item.prLinks}
+										></textarea>
+									</div>
+								</div>
+							{/each}
+						</div>
+					</div>
+				</div>
 
-            <!-- 결과 -->
-            <div class="card bg-base-200 shadow-xl">
-                <div class="card-body">
-                    <div class="mb-2 flex items-center justify-between">
-                        <h2 class="card-title">결과</h2>
-                        <button class="btn btn-sm btn-primary" onclick={() => copyToClipboard(peerReviewResult)}>
-                            복사하기
-                        </button>
-                    </div>
-                    <div class="form-control">
-                        <textarea
-                            class="textarea-bordered textarea h-96 w-full"
-                            readonly
-                            value={peerReviewResult}
-                        ></textarea>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+				<ResultPanel body={peerReviewResult} heightClass="h-96" preview={false} />
+			</div>
+		</div>
 
-    <!-- 검수 요청 -->
-    <div>
-        <h1 class="mb-4 text-2xl font-bold">검수 요청</h1>
-        <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
-            <!-- 입력 -->
-            <div class="card bg-base-100 shadow-xl">
-                <div class="card-body">
-                    <div class="mb-2 flex items-center justify-between">
-                        <h2 class="card-title">입력</h2>
-                        <div class="flex gap-1">
-                            <button class="btn btn-xs btn-error" onclick={resetInspectItems}>초기화</button>
-                            <button class="btn btn-xs btn-outline btn-primary" onclick={addInspectItem}>+ 추가</button>
-                        </div>
-                    </div>
-                    <div class="flex flex-col gap-4">
-                        {#each inspectItems as item, index (item.id)}
-                            <div
-                                class="rounded-box border border-base-300 p-4"
-                                ondragover={handleDragOver}
-                                ondrop={(e) => handleDrop(e, index, 'inspect')}
-                            >
-                                <div class="mb-2 flex items-center justify-between">
-                                    <div class="flex items-center gap-2">
-                                        <span
-                                            class="cursor-move select-none text-base-content/40"
-                                            draggable="true"
-                                            ondragstart={(e) => handleDragStart(e, index, 'inspect')}
-                                            ondragend={handleDragEnd}
-                                        >⠿</span>
-                                        <span class="text-sm font-semibold text-base-content/60">#{index + 1}</span>
-                                    </div>
-                                    {#if inspectItems.length > 1}
-                                        <button
-                                            class="btn btn-xs btn-outline btn-error"
-                                            onclick={() => removeInspectItem(item.id)}
-                                        >삭제</button>
-                                    {/if}
-                                </div>
-                                <div class="form-control w-full">
-                                    <label class="label" for="inspect-issue-{item.id}">
-                                        <span class="label-text">일감</span>
-                                    </label>
-                                    <div class="flex items-center gap-2">
-                                        <input
-                                            id="inspect-issue-{item.id}"
-                                            type="text"
-                                            class="input-bordered input flex-1"
-                                            placeholder="[서비스] 제목 (일감)"
-                                            bind:value={item.issue}
-                                        />
-                                        <a
-                                            href={getRedmineUrl(item.issue) || null}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            class="btn btn-xs btn-square btn-ghost {!getRedmineUrl(item.issue) ? 'btn-disabled' : ''}"
-                                            title="Redmine 링크 열기"
-                                        >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                class="h-4 w-4"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                            >
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                                                />
-                                            </svg>
-                                        </a>
-                                    </div>
-                                </div>
-                                <div class="form-control mt-2 w-full">
-                                    <label class="label">
-                                        <span class="label-text">검수정보</span>
-                                    </label>
-                                    <div class="flex flex-col gap-2">
-                                        {#each item.infos as info (info.id)}
-                                            <div class="flex items-center gap-2">
-                                                <select
-                                                    class="select-bordered select w-40 shrink-0"
-                                                    bind:value={info.inspectType}
-                                                    onchange={() => onInspectTypeChange(info)}
-                                                >
-                                                    <option value="">검수정보 선택</option>
-                                                    <option value="개발장비">개발장비</option>
-                                                    <option value="검수장비">검수장비</option>
-                                                    <option value="직접입력">직접입력</option>
-                                                </select>
+		<!-- 검수 요청 -->
+		<div>
+			<h1 class="mb-4 text-2xl font-bold">검수 요청</h1>
+			<div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+				<!-- 입력 -->
+				<div class="card bg-base-100 shadow-xl">
+					<div class="card-body">
+						<div class="mb-2 flex items-center justify-between">
+							<h2 class="card-title">입력</h2>
+							<div class="flex gap-1">
+								<button class="btn btn-error btn-xs" onclick={resetInspectItems}>초기화</button>
+								<button class="btn btn-outline btn-primary btn-xs" onclick={addInspectItem}
+									>+ 추가</button
+								>
+							</div>
+						</div>
+						<div class="flex flex-col gap-4">
+							{#each inspectItems as item, index (item.id)}
+								<div
+									class="rounded-box border border-base-300 p-4"
+									ondragover={handleDragOver}
+									ondrop={(e) => handleDrop(e, index, 'inspect')}
+								>
+									<div class="mb-2 flex items-center justify-between">
+										<div class="flex items-center gap-2">
+											<span
+												class="cursor-move text-base-content/40 select-none"
+												draggable="true"
+												ondragstart={(e) => handleDragStart(e, index, 'inspect')}
+												ondragend={handleDragEnd}>⠿</span
+											>
+											<span class="text-sm font-semibold text-base-content/60">#{index + 1}</span>
+										</div>
+										{#if inspectItems.length > 1}
+											<button
+												class="btn btn-outline btn-error btn-xs"
+												onclick={() => removeInspectItem(item.id)}>삭제</button
+											>
+										{/if}
+									</div>
+									<div class="form-control w-full">
+										<label class="label" for="inspect-issue-{item.id}">
+											<span class="label-text">일감</span>
+										</label>
+										<div class="flex items-center gap-2">
+											<input
+												id="inspect-issue-{item.id}"
+												type="text"
+												class="input-bordered input flex-1"
+												placeholder="[서비스] 제목 (일감)"
+												bind:value={item.issue}
+											/>
+											<a
+												href={getRedmineUrl(item.issue) || null}
+												target="_blank"
+												rel="noopener noreferrer"
+												class="btn btn-square btn-ghost btn-xs {!getRedmineUrl(item.issue)
+													? 'btn-disabled'
+													: ''}"
+												title="Redmine 링크 열기"
+											>
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													class="h-4 w-4"
+													fill="none"
+													viewBox="0 0 24 24"
+													stroke="currentColor"
+												>
+													<path
+														stroke-linecap="round"
+														stroke-linejoin="round"
+														stroke-width="2"
+														d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+													/>
+												</svg>
+											</a>
+										</div>
+									</div>
+									<div class="form-control mt-2 w-full">
+										<label class="label">
+											<span class="label-text">검수정보</span>
+										</label>
+										<div class="flex flex-col gap-2">
+											{#each item.infos as info (info.id)}
+												<div class="flex items-center gap-2">
+													<select
+														class="select-bordered select w-40 shrink-0"
+														bind:value={info.inspectType}
+														onchange={() => onInspectTypeChange(info)}
+													>
+														<option value="">검수정보 선택</option>
+														<option value="개발장비">개발장비</option>
+														<option value="검수장비">검수장비</option>
+														<option value="직접입력">직접입력</option>
+													</select>
 
-                                                {#if info.inspectType === '직접입력'}
-                                                    <input
-                                                        type="text"
-                                                        class="input-bordered input flex-1"
-                                                        placeholder=""
-                                                        bind:value={info.customUrl}
-                                                    />
-                                                {:else}
-                                                    <select
-                                                        class="select-bordered select flex-1"
-                                                        bind:value={info.service}
-                                                        onchange={() => onServiceChange(info)}
-                                                        disabled={!info.inspectType || isLoadingServers}
-                                                    >
-                                                        <option value="">장비명 선택</option>
-                                                        {#each getServersForType(info.inspectType) as server}
-                                                            <option value={server.service}>{server.service}</option>
-                                                        {/each}
-                                                    </select>
+													{#if info.inspectType === '직접입력'}
+														<input
+															type="text"
+															class="input-bordered input flex-1"
+															placeholder=""
+															bind:value={info.customUrl}
+														/>
+													{:else}
+														<select
+															class="select-bordered select flex-1"
+															bind:value={info.service}
+															onchange={() => onServiceChange(info)}
+															disabled={!info.inspectType || isLoadingServers}
+														>
+															<option value="">장비명 선택</option>
+															{#each getServersForType(info.inspectType) as server (server.service ?? server)}
+																<option value={server.service}>{server.service}</option>
+															{/each}
+														</select>
 
-                                                    <select
-                                                        class="select-bordered select flex-1"
-                                                        bind:value={info.environment}
-                                                        disabled={!info.service || isLoadingServers}
-                                                    >
-                                                        <option value="">서버 선택</option>
-                                                        {#each getEnvironments(info) as env}
-                                                            <option value={env.name}>{env.name}</option>
-                                                        {/each}
-                                                    </select>
-                                                {/if}
-                                                <button
-                                                    class="btn btn-xs btn-outline btn-primary shrink-0"
-                                                    onclick={() => addInspectInfo(item)}
-                                                >+ 추가</button>
-                                                {#if item.infos.length > 1}
-                                                    <button
-                                                        class="btn btn-xs btn-outline btn-error shrink-0"
-                                                        onclick={() => removeInspectInfo(item, info.id)}
-                                                    >삭제</button>
-                                                {/if}
-                                            </div>
-                                        {/each}
-                                    </div>
-                                </div>
-                            </div>
-                        {/each}
-                    </div>
-                </div>
-            </div>
+														<select
+															class="select-bordered select flex-1"
+															bind:value={info.environment}
+															disabled={!info.service || isLoadingServers}
+														>
+															<option value="">서버 선택</option>
+															{#each getEnvironments(info) as env (env.name ?? env)}
+																<option value={env.name}>{env.name}</option>
+															{/each}
+														</select>
+													{/if}
+													<button
+														class="btn shrink-0 btn-outline btn-primary btn-xs"
+														onclick={() => addInspectInfo(item)}>+ 추가</button
+													>
+													{#if item.infos.length > 1}
+														<button
+															class="btn shrink-0 btn-outline btn-error btn-xs"
+															onclick={() => removeInspectInfo(item, info.id)}>삭제</button
+														>
+													{/if}
+												</div>
+											{/each}
+										</div>
+									</div>
+								</div>
+							{/each}
+						</div>
+					</div>
+				</div>
 
-            <!-- 결과 -->
-            <div class="card bg-base-200 shadow-xl">
-                <div class="card-body">
-                    <div class="mb-2 flex items-center justify-between">
-                        <h2 class="card-title">결과</h2>
-                        <button class="btn btn-sm btn-primary" onclick={() => copyToClipboard(inspectResult)}>
-                            복사하기
-                        </button>
-                    </div>
-                    <div class="form-control">
-                        <textarea
-                            class="textarea-bordered textarea h-96 w-full"
-                            readonly
-                            value={inspectResult}
-                        ></textarea>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    </div>
-</div>
+				<ResultPanel body={inspectResult} heightClass="h-96" preview={false} />
+			</div>
+		</div>
+	</div>
+</ToolPage>

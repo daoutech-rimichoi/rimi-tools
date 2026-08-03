@@ -25,6 +25,9 @@ CREATE POLICY "Enable insert access for all users" ON public.quick_links FOR INS
 CREATE POLICY "Enable update access for all users" ON public.quick_links FOR UPDATE USING (true);
 CREATE POLICY "Enable delete access for all users" ON public.quick_links FOR DELETE USING (true);
 
+-- 3-1. 실시간 구독 활성화 (다른 사용자의 링크 변경을 새로고침 없이 반영)
+ALTER PUBLICATION supabase_realtime ADD TABLE public.quick_links;
+
 -- 4. 초기 데이터 (신규 설치용 — 표시 순서: Redmine → Jenkins → GoogleDrive → ClipShare → 기타)
 --    Redmine '일감' 번호 입력 프롬프트는 코드(specialItems)에서 유지되므로 여기에 넣지 않습니다.
 INSERT INTO public.quick_links (group_name, name, path, display_order) VALUES

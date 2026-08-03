@@ -51,10 +51,8 @@ export const createPresenceStore = (roomName) => {
 				const state = channel.presenceState();
 				presenceState.set(state);
 			})
-			.on('presence', { event: 'join' }, ({ key, newPresences }) => {
-			})
-			.on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-			});
+			.on('presence', { event: 'join' }, () => {})
+			.on('presence', { event: 'leave' }, () => {});
 
 		await channel.subscribe(async (status) => {
 			if (status === 'SUBSCRIBED') {
@@ -98,7 +96,7 @@ export const createPresenceStore = (roomName) => {
 	// Derived store: get all users currently online
 	const onlineUsers = derived(presenceState, ($state) => {
 		const users = [];
-		for (const [key, presences] of Object.entries($state)) {
+		for (const presences of Object.values($state)) {
 			if (presences && presences.length > 0) {
 				users.push(presences[0]);
 			}
@@ -111,7 +109,7 @@ export const createPresenceStore = (roomName) => {
 		const editing = {};
 		const currentUserId = $currentUser?.id;
 
-		for (const [key, presences] of Object.entries($state)) {
+		for (const presences of Object.values($state)) {
 			if (presences && presences.length > 0) {
 				const user = presences[0];
 				// Exclude current user from "someone is editing" display
