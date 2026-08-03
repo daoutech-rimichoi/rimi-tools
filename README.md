@@ -26,7 +26,7 @@
   - `Icon`: 외부 라이브러리 없는 stroke 아이콘 모음
   - `layout/`: 사이드바 · 상단바 · 커맨드 팔레트 · 바로가기 링크
 - `src/lib/stores/`: 전역 상태 (`common.js` 토스트, `favorites.js`, `quickLinks.js`)
-- `netlify/functions/`: URL Shortener
+- `src/routes/api/`: 서버 엔드포인트 (URL 단축 프록시 등)
 - `sql/`: 데이터베이스 설정을 위한 SQL 스크립트
 
 ## 🛠️ 로컬 개발 환경 구축

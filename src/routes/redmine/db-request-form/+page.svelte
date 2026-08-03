@@ -1,8 +1,10 @@
 <script>
+	import { onMount } from 'svelte';
 	import ResultPanel from '$lib/components/ResultPanel.svelte';
 	import { SvelteDate } from 'svelte/reactivity';
 	import { USER_NAMES } from '$lib/config/users.js';
 	import ToolPage from '$lib/components/ToolPage.svelte';
+	import { resolveCurrentUser } from '$lib/stores/currentUser.js';
 
 	// Function to get today's date at 18:00 in YYYY-MM-DDTHH:mm format
 	function getDefaultDateTime() {
@@ -23,6 +25,12 @@
 
 	// State variables for form inputs
 	let assignee = $state('최경림');
+	// 접속 IP 로 담당자를 추정해 한 번만 채운다. 직접 고른 뒤에는 건드리지 않는다.
+	let assigneePicked = $state(false);
+	onMount(async () => {
+		const me = await resolveCurrentUser();
+		if (me && !assigneePicked) assignee = me;
+	});
 	let reason = $state('');
 	let details = $state('');
 	let type = $state('');
@@ -221,7 +229,12 @@
 					<label for="assignee" class="label">
 						<span class="label-text">담당자</span>
 					</label>
-					<select id="assignee" bind:value={assignee} class="select-bordered select w-full">
+					<select
+						id="assignee"
+						bind:value={assignee}
+						onchange={() => (assigneePicked = true)}
+						class="select-bordered select w-full"
+					>
 						{#each assignees as name (name)}
 							<option value={name}>{name}</option>
 						{/each}

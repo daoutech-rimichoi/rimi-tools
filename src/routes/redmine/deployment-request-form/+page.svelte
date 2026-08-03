@@ -4,18 +4,25 @@
 	import ResultPanel from '$lib/components/ResultPanel.svelte';
 	import ToolPage from '$lib/components/ToolPage.svelte';
 	import { USER_NAMES } from '$lib/config/users.js';
+	import { resolveCurrentUser } from '$lib/stores/currentUser.js';
 	import {
-		DEPLOY_TYPE_NAMES,
-		DEPLOY_TYPE_OPTIONS,
+		DEPLOY_TYPES,
 		PROCESS_OPTIONS,
-		SERVICE_SELECT_OPTIONS,
-		SERVICE_TITLE_NAMES
+		SERVICE_GROUPS,
+		deployTypeName,
+		serviceGroupName
 	} from '$lib/config/services.js';
 
 	// --- 입력 상태 ---
 	let service = $state('bizsales');
 	let deploymentType = $state('deploy');
 	let developer = $state('최경림');
+	// 접속 IP 로 담당자를 추정해 한 번만 채운다. 직접 고른 뒤에는 건드리지 않는다.
+	let developerPicked = $state(false);
+	onMount(async () => {
+		const me = await resolveCurrentUser();
+		if (me && !developerPicked) developer = me;
+	});
 	let selectedProcesses = $state([]);
 	let workDescription = $state('');
 	let workTime = $state('');
@@ -58,12 +65,12 @@
 
 	// --- Reactive Output Generation ---
 	const formattedWorkTime = $derived(workTime ? workTime.replace('T', ' ') : '');
-	const outputTitle = $derived(`[${SERVICE_TITLE_NAMES[service]}] 서비스 배포 요청`);
+	const outputTitle = $derived(`[${serviceGroupName(service)}] 서비스 배포 요청`);
 	const outputBody = $derived.by(() => {
 		const sections = [];
 		if (selectedProcesses && selectedProcesses.length > 0) {
 			sections.push(
-				`<p>■ 대상 프로세스 (${DEPLOY_TYPE_NAMES[deploymentType]})<br />\n${formatToList(selectedProcesses)}</p>`
+				`<p>■ 대상 프로세스 (${deployTypeName(deploymentType)})<br />\n${formatToList(selectedProcesses)}</p>`
 			); // Added deploymentType
 		}
 		if (workDescription && workDescription.trim()) {
@@ -112,8 +119,8 @@ ${sections.join('\n')}
 							<span class="label-text">서비스</span>
 						</label>
 						<select id="service" bind:value={service} class="select-bordered select w-full">
-							{#each SERVICE_SELECT_OPTIONS as s (s.value)}
-								<option value={s.value}>{s.label}</option>
+							{#each SERVICE_GROUPS as g (g.key)}
+								<option value={g.key}>{g.name}</option>
 							{/each}
 						</select>
 					</div>
@@ -127,8 +134,8 @@ ${sections.join('\n')}
 							bind:value={deploymentType}
 							class="select-bordered select w-full"
 						>
-							{#each DEPLOY_TYPE_OPTIONS as dt (dt.value)}
-								<option value={dt.value}>{dt.label}</option>
+							{#each DEPLOY_TYPES as t (t.key)}
+								<option value={t.key}>{t.name}</option>
 							{/each}
 						</select>
 					</div>
@@ -140,7 +147,12 @@ ${sections.join('\n')}
 						<label for="developer" class="label">
 							<span class="label-text">담당자</span>
 						</label>
-						<select id="developer" bind:value={developer} class="select-bordered select w-full">
+						<select
+							id="developer"
+							bind:value={developer}
+							onchange={() => (developerPicked = true)}
+							class="select-bordered select w-full"
+						>
 							{#each developers as d (d)}
 								<option value={d}>{d}</option>
 							{/each}

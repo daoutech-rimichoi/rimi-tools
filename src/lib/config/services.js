@@ -22,9 +22,6 @@ export const SERVICE_GROUPS = [
 	{ key: 'numball', name: '번호자원관리시스템' }
 ];
 
-/** 배포 요청서 제목에 쓰는 제품군 표기. 제품군 이름과 항상 같다. */
-export const SERVICE_TITLE_NAMES = Object.fromEntries(SERVICE_GROUPS.map((g) => [g.key, g.name]));
-
 /** 배포 유형 */
 export const DEPLOY_TYPES = [
 	{ key: 'deploy', name: '재기동' },
@@ -209,20 +206,14 @@ export const PROCESSES = [
 
 // --- 화면별 파생 목록 -------------------------------------------------------
 
-/** 배포 요청 양식: 서비스 select */
-export const SERVICE_SELECT_OPTIONS = SERVICE_GROUPS.map(({ key, name }) => ({
-	value: key,
-	label: name
-}));
+/** key 로 이름 찾기. 목록이 짧아 맵을 따로 만들지 않는다. */
+const nameOf = (list, key) => list.find((x) => x.key === key)?.name ?? key;
 
-/** 배포 요청 양식: 배포 유형 select */
-export const DEPLOY_TYPE_OPTIONS = DEPLOY_TYPES.map(({ key, name }) => ({
-	value: key,
-	label: name
-}));
+/** 제품군 key -> 이름 (배포 요청서 제목 등) */
+export const serviceGroupName = (key) => nameOf(SERVICE_GROUPS, key);
 
 /** 배포 유형 key -> 이름 */
-export const DEPLOY_TYPE_NAMES = Object.fromEntries(DEPLOY_TYPES.map((t) => [t.key, t.name]));
+export const deployTypeName = (key) => nameOf(DEPLOY_TYPES, key);
 
 /** 배포 요청 양식: `{서비스}.{배포유형}` -> 프로세스 문구 목록 */
 export const PROCESS_OPTIONS = SERVICE_GROUPS.reduce((acc, { key }) => {

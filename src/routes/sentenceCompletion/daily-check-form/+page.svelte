@@ -8,6 +8,7 @@
 	import { browser } from '$app/environment';
 	import ToolPage from '$lib/components/ToolPage.svelte';
 	import TableSkeleton from '$lib/components/TableSkeleton.svelte';
+	import { resolveCurrentUser } from '$lib/stores/currentUser.js';
 
 	const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 	const MINUTES = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
@@ -147,6 +148,8 @@
 
 	// 점검 상태 (실시간 DB 동기화)
 	let selectedInspector = $state('');
+	// 접속 IP 로 점검자를 추정해 한 번만 채운다. 초기화 후에는 다시 채우지 않는다.
+	let inspectorPicked = $state(false);
 	let statuses = $state(Object.fromEntries(USER_NAMES.map((name) => [name, ''])));
 	let activeStatuses = $derived(USER_NAMES.filter((name) => statuses[name]));
 	let allDone = $derived(
@@ -366,6 +369,14 @@
 		}
 	}
 
+	onMount(async () => {
+		const me = await resolveCurrentUser();
+		if (me && !inspectorPicked && !selectedInspector) {
+			selectedInspector = me;
+			inspectorPicked = true;
+		}
+	});
+
 	onMount(() => {
 		if (!browser) return;
 		Promise.all([loadStatuses(), loadRows()]).finally(() => {
@@ -512,7 +523,11 @@
 		<!-- 점검 상태 선택 -->
 		<div class="mb-2 flex items-center justify-between">
 			<div class="flex items-center gap-3">
-				<select class="select-bordered select w-36 select-sm" bind:value={selectedInspector}>
+				<select
+					class="select-bordered select w-36 select-sm"
+					bind:value={selectedInspector}
+					onchange={() => (inspectorPicked = true)}
+				>
 					<option value="">점검자 선택</option>
 					{#each USER_NAMES as name (name)}
 						<option value={name}>{name}</option>

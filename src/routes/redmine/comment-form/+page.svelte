@@ -2,6 +2,7 @@
 	import { SvelteDate } from 'svelte/reactivity';
 	import ResultPanel from '$lib/components/ResultPanel.svelte';
 	import { toServiceName } from '$lib/utils/serviceName.js';
+	import { toast } from '$lib/stores/common.js';
 	import ToolPage from '$lib/components/ToolPage.svelte';
 
 	const today = new SvelteDate().toISOString().split('T')[0];
@@ -102,30 +103,27 @@ ${formattedDetailedEffort}</p>
 
 	async function shortenUrl() {
 		if (!tcLink) {
-			alert('TC 링크를 입력해주세요.');
+			toast.show('TC 링크를 입력해주세요.', 'error');
 			return;
 		}
 		isShortening = true;
 		try {
-			const response = await fetch('/.netlify/functions/shorten', {
+			const response = await fetch('/api/shorten', {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded'
-				},
-				body: new URLSearchParams({
-					url: tcLink
-				})
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ url: tcLink })
 			});
-			if (!response.ok) {
-				const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }));
-				// noinspection ExceptionCaughtLocallyJS
-				throw new Error(`URL 단축 실패: ${errorData.error}`);
+			const data = await response.json().catch(() => null);
+
+			if (!response.ok || !data?.result_url) {
+				toast.show(data?.error ?? 'URL 단축에 실패했습니다.', 'error');
+				return;
 			}
-			const data = await response.json();
 			tcLink = data.result_url;
+			toast.show('짧은 URL로 변환되었습니다.', 'success');
 		} catch (error) {
-			console.error('URL Shortening Error:', error);
-			alert(`URL 단축 중 오류가 발생했습니다: ${error.message}.`);
+			console.error('URL 단축 실패:', error);
+			toast.show('단축 서버에 연결할 수 없습니다.', 'error');
 		} finally {
 			isShortening = false;
 		}

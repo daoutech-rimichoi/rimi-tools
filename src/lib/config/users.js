@@ -11,3 +11,16 @@ export const USERS = [
 
 // 사용자 이름 목록
 export const USER_NAMES = USERS.map((user) => user.name);
+
+/**
+ * 접속 IP로 사용자를 찾는다. 담당자 자동 선택에만 쓰며, 못 찾으면 undefined.
+ * IPv6 매핑(::ffff:1.2.3.4)이나 프록시 체인으로 들어오는 경우도 처리한다.
+ */
+export function getUserByIp(ip) {
+	if (!ip) return undefined;
+	const normalized = String(ip)
+		.split(',')[0]
+		.trim()
+		.replace(/^::ffff:/, '');
+	return USERS.find((user) => user.ip === normalized);
+}

@@ -4,9 +4,16 @@
 	import ResultPanel from '$lib/components/ResultPanel.svelte';
 	import ToolPage from '$lib/components/ToolPage.svelte';
 	import { USER_NAMES } from '$lib/config/users.js';
+	import { resolveCurrentUser } from '$lib/stores/currentUser.js';
 
 	// --- 입력 상태 ---
 	let developer = $state('최경림');
+	// 접속 IP 로 담당자를 추정해 한 번만 채운다. 직접 고른 뒤에는 건드리지 않는다.
+	let developerPicked = $state(false);
+	onMount(async () => {
+		const me = await resolveCurrentUser();
+		if (me && !developerPicked) developer = me;
+	});
 	let selectedTargets = $state([]);
 	let workTime = $state('');
 
@@ -140,7 +147,12 @@ cp worker.properties.org ./worker.properties<br />
 						<label for="developer" class="label">
 							<span class="label-text">담당자</span>
 						</label>
-						<select id="developer" bind:value={developer} class="select-bordered select w-full">
+						<select
+							id="developer"
+							bind:value={developer}
+							onchange={() => (developerPicked = true)}
+							class="select-bordered select w-full"
+						>
 							{#each developers as d (d)}
 								<option value={d}>{d}</option>
 							{/each}
