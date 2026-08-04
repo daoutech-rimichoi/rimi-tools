@@ -13,8 +13,8 @@
 ## 📂 프로젝트 구조
 
 - `src/routes/`: 각 도구의 페이지 엔드포인트
-  - `statusBoard/`: 개발/검수 장비 사용 현황판
-  - `sentenceCompletion/`: 배포 예정 현황 · 메신저 문구 · 일일 점검 양식
+  - `status-board/`: 개발/검수 장비 사용 현황판
+  - `sentence-completion/`: 배포 예정 현황 · 메신저 문구 · 일일 점검 양식
   - `redmine/`: L4 / 배포 / 코멘트 / DB 업무 요청 양식
   - `etc/`: 비밀번호 모음집
 - `src/lib/config/tools.js`: **도구 레지스트리.** 사이드바 · 홈 카드 · ⌘K 팔레트 · 페이지 헤더가

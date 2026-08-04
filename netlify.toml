@@ -8,3 +8,23 @@
   targetPort = 5173
   port = 8888
   autoLaunch = false
+
+# 라우트를 kebab-case 로 바꾸기 전의 주소로 들어와도 열리게 한다.
+# Netlify 가 경로를 먼저 소문자로 정규화하므로 소문자 기준으로 매칭한다.
+[[redirects]]
+  from = "/statusboard/devserver"
+  to = "/status-board/dev-server"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/statusboard/stgserver"
+  to = "/status-board/stg-server"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/sentencecompletion/*"
+  to = "/sentence-completion/:splat"
+  status = 301
+  force = true

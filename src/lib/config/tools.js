@@ -11,14 +11,14 @@ export const TOOL_CATEGORIES = [
 		name: '현황판',
 		tools: [
 			{
-				path: '/statusBoard/devServer',
+				path: '/status-board/dev-server',
 				name: '개발장비 사용 현황',
 				tagline: '🔫 싸우지 말고 사용합시다~ 🔫',
 				icon: 'server',
 				wide: true
 			},
 			{
-				path: '/statusBoard/stgServer',
+				path: '/status-board/stg-server',
 				name: '검수장비 사용 현황',
 				tagline: '🧨 검수장비는 항시 실발송 주의!! 🧨',
 				icon: 'alert',
@@ -31,21 +31,21 @@ export const TOOL_CATEGORIES = [
 		name: '문장완성',
 		tools: [
 			{
-				path: '/sentenceCompletion/upcoming-deployment-status-form',
+				path: '/sentence-completion/upcoming-deployment-status-form',
 				name: '배포 예정 현황 양식',
 				tagline: '🚀 "저장"은 선택이 아닌 필수임당 🚀',
 				icon: 'send',
 				wide: true
 			},
 			{
-				path: '/sentenceCompletion/messenger-form',
+				path: '/sentence-completion/messenger-form',
 				name: '메신저 문구 양식',
 				description: '동료검토 요청 / 검수 요청 메신저 문구를 자동으로 완성합니다.',
 				icon: 'message',
 				wide: true
 			},
 			{
-				path: '/sentenceCompletion/daily-check-form',
+				path: '/sentence-completion/daily-check-form',
 				name: '일일 점검 양식',
 				description: '일일 점검 진행 상태를 공유하고 점검 결과 표를 만듭니다.',
 				icon: 'clipboard',
@@ -108,19 +108,28 @@ export const TOOLS = TOOL_CATEGORIES.flatMap((category) =>
 	category.tools.map((tool) => ({ ...tool, categoryId: category.id, categoryName: category.name }))
 );
 
-const TOOL_BY_PATH = new Map(TOOLS.map((tool) => [tool.path, tool]));
-
 /**
- * 경로 표기 차이를 흡수한다. 호스팅에 따라 트레일링 슬래시가 붙어 들어올 수 있고,
- * 그때 도구를 못 찾으면 제목이 사라지고 폭이 좁아지는 식으로 화면이 깨진다.
+ * 경로 표기 차이를 흡수한다.
+ *
+ * URL 은 대소문자를 그대로 유지하지만 호스팅은 프리렌더된 파일을 대소문자 구분 없이
+ * 내주기도 한다. 그래서 `/statusboard/devserver` 로 들어와도 페이지는 뜨는데,
+ * 레지스트리 조회만 실패해 제목·메뉴 활성 표시가 사라지고 폭이 좁아진다.
+ * 트레일링 슬래시도 같은 이유로 함께 정규화한다.
  */
 function normalizePath(path) {
 	if (typeof path !== 'string') return '';
-	const trimmed = path.replace(/\/+$/, '');
+	const trimmed = path.replace(/\/+$/, '').toLowerCase();
 	return trimmed || '/';
 }
+
+const TOOL_BY_PATH = new Map(TOOLS.map((tool) => [normalizePath(tool.path), tool]));
 
 /** 경로로 도구 조회 (없으면 undefined) */
 export function getTool(path) {
 	return TOOL_BY_PATH.get(normalizePath(path));
+}
+
+/** 두 경로가 같은 화면을 가리키는지 (메뉴 활성 표시 등) */
+export function isSamePath(a, b) {
+	return normalizePath(a) === normalizePath(b);
 }

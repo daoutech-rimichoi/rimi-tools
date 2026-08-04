@@ -1,6 +1,6 @@
 <script>
 	import { page } from '$app/state';
-	import { TOOL_CATEGORIES, getTool } from '$lib/config/tools.js';
+	import { TOOL_CATEGORIES, getTool, isSamePath } from '$lib/config/tools.js';
 	import { favorites } from '$lib/stores/favorites.js';
 	import Icon from '../Icon.svelte';
 	import QuickLinks from './QuickLinks.svelte';
@@ -49,8 +49,10 @@
 						<a
 							href={tool.path}
 							onclick={onNavigate}
-							class="flex items-center gap-2.5 rounded-field px-2.5 py-2 text-sm transition-colors {currentPath ===
-							tool.path
+							class="flex items-center gap-2.5 rounded-field px-2.5 py-2 text-sm transition-colors {isSamePath(
+								currentPath,
+								tool.path
+							)
 								? 'bg-primary/15 font-medium text-primary'
 								: 'text-base-content/75 hover:bg-base-100'}"
 						>
@@ -96,8 +98,10 @@
 							<a
 								href={tool.path}
 								onclick={onNavigate}
-								class="flex items-center gap-2.5 rounded-field px-2.5 py-2 text-sm transition-colors {currentPath ===
-								tool.path
+								class="flex items-center gap-2.5 rounded-field px-2.5 py-2 text-sm transition-colors {isSamePath(
+									currentPath,
+									tool.path
+								)
 									? 'bg-primary/15 font-medium text-primary'
 									: 'text-base-content/75 hover:bg-base-100'}"
 							>
