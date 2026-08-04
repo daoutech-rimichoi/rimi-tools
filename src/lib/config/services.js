@@ -262,7 +262,7 @@ export const DEPLOY_TARGET_NAMES = [
 export const SCENARIO_SERVICE_NAMES = ['비즈뿌리오', '영업관리시스템', 'JavaASP', '유핏'];
 
 /** 배포 예정 현황 비고: 작업 종류 */
-export const SCENARIO_TYPE_NAMES = ['운영작업시나리오'];
+export const SCENARIO_TYPE_NAMES = ['운영작업시나리오', 'DB'];
 
 /** select 목록 앞뒤에 붙는 공통 항목 */
 export const PLACEHOLDER_SERVICE = '서비스선택';
