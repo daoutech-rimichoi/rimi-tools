@@ -110,7 +110,17 @@ export const TOOLS = TOOL_CATEGORIES.flatMap((category) =>
 
 const TOOL_BY_PATH = new Map(TOOLS.map((tool) => [tool.path, tool]));
 
+/**
+ * 경로 표기 차이를 흡수한다. 호스팅에 따라 트레일링 슬래시가 붙어 들어올 수 있고,
+ * 그때 도구를 못 찾으면 제목이 사라지고 폭이 좁아지는 식으로 화면이 깨진다.
+ */
+function normalizePath(path) {
+	if (typeof path !== 'string') return '';
+	const trimmed = path.replace(/\/+$/, '');
+	return trimmed || '/';
+}
+
 /** 경로로 도구 조회 (없으면 undefined) */
 export function getTool(path) {
-	return TOOL_BY_PATH.get(path);
+	return TOOL_BY_PATH.get(normalizePath(path));
 }

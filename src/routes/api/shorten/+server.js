@@ -9,6 +9,9 @@ import { json } from '@sveltejs/kit';
  */
 const SHORTENER_URL = 'https://rul.kr/create';
 
+// 루트 레이아웃의 prerender=true 를 상속하지 않도록 명시한다.
+export const prerender = false;
+
 export async function POST({ request, fetch }) {
 	let url;
 	try {

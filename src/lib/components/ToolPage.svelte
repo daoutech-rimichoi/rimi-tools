@@ -9,7 +9,9 @@
 	 */
 	let { title, description, tagline, wide, children } = $props();
 
-	const isWide = $derived(wide ?? getTool(page.url.pathname)?.wide ?? false);
+	// 레지스트리에서 도구를 못 찾아도 좁은 폭으로 무너지지 않게 넓은 쪽을 기본으로 둔다.
+	// (현재 모든 도구가 wide 이고, 좁게 쓰려면 wide={false} 를 명시하면 된다)
+	const isWide = $derived(wide ?? getTool(page.url.pathname)?.wide ?? true);
 </script>
 
 <!-- 사내 도구라 화면을 넓게 쓰는 편이 낫다. 초광폭 모니터에서만 최대 폭이 걸린다. -->
