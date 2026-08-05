@@ -89,7 +89,7 @@ export const PROCESSES = [
 	},
 	{
 		group: 'bizpp',
-		name: '비즈뿌리오 발송 배치',
+		name: '비즈뿌리오 배치',
 		deployName: 'bizBatchApi',
 		repo: 'bizBatchApi',
 		type: 'deploy',
@@ -238,7 +238,7 @@ export const REPO_SERVICE_NAMES = Object.fromEntries(
  */
 export const DEPLOY_TARGET_NAMES = [
 	'비즈뿌리오 웹',
-	'비즈뿌리오 발송 배치',
+	'비즈뿌리오 배치',
 	'비즈뿌리오 KAPI',
 	'비즈뿌리오 NAPI',
 	'비즈뿌리오 RAPI',
